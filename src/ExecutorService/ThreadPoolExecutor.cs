@@ -169,18 +169,14 @@ public sealed class ThreadPoolExecutor : IExecutorService
 
     private void Enqueue(WorkItem item)
     {
-        if (IsShutdown)
-        {
-            throw new RejectedExecutionException();
-        }
-
+        // The queue's completed state is the single source of truth for rejection: both Shutdown and
+        // ShutdownNow complete it, and BlockingCollection.Add is atomic with respect to CompleteAdding.
         try
         {
             _queue.Add(item);
         }
         catch (InvalidOperationException ex)
         {
-            // Shutdown raced with this call and completed the queue between the check and the add.
             throw new RejectedExecutionException("Task rejected: the executor has been shut down.", ex);
         }
     }
@@ -199,19 +195,28 @@ public sealed class ThreadPoolExecutor : IExecutorService
         return false;
     }
 
+    /// <summary>
+    /// Runs <paramref name="item"/> on the calling thread, or cancels it without running when
+    /// <see cref="ShutdownNow"/> has already been called (the worker dequeued it before the drain).
+    /// </summary>
+    internal void Dispatch(WorkItem item)
+    {
+        if (Volatile.Read(ref _state) == Stopped)
+        {
+            item.Cancel();
+            return;
+        }
+
+        item.Run();
+    }
+
     private void WorkerLoop()
     {
         try
         {
             foreach (var item in _queue.GetConsumingEnumerable())
             {
-                if (Volatile.Read(ref _state) == Stopped)
-                {
-                    item.Cancel();
-                    continue;
-                }
-
-                item.Run();
+                Dispatch(item);
             }
         }
         finally

@@ -1,0 +1,137 @@
+# https://taskfile.dev — run `task` to list available commands.
+version: '3'
+
+vars:
+  SOLUTION: ExecutorService.slnx
+  PROJECT: src/ExecutorService/ExecutorService.csproj
+  TEST_PROJECT: tests/ExecutorService.Tests/ExecutorService.Tests.csproj
+  CONFIGURATION: '{{.CONFIGURATION | default "Debug"}}'
+  RESULTS_DIR: TestResults
+  COVERAGE_FILE: '{{.RESULTS_DIR}}/coverage.cobertura.xml'
+  COVERAGE_REPORT_DIR: '{{.RESULTS_DIR}}/coverage'
+  COVERAGE_THRESHOLD: '{{.COVERAGE_THRESHOLD | default "100"}}'
+  ARTIFACTS_DIR: artifacts
+
+env:
+  DOTNET_NOLOGO: 'true'
+  DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+
+tasks:
+  default:
+    desc: List available tasks
+    silent: true
+    cmds:
+      - task --list
+
+  tools:
+    desc: Restore local dotnet tools (reportgenerator)
+    cmds:
+      - dotnet tool restore
+    sources:
+      - .config/dotnet-tools.json
+    generates:
+      - .config/dotnet-tools.json
+
+  restore:
+    desc: Restore NuGet packages
+    cmds:
+      - dotnet restore {{.SOLUTION}}
+
+  build:
+    desc: Build the solution (CONFIGURATION=Debug|Release)
+    cmds:
+      - dotnet build {{.SOLUTION}} --configuration {{.CONFIGURATION}}
+
+  test:
+    desc: Run the test suite (pass extra args after `--`, e.g. `task test -- --filter-method "*Shutdown*"`)
+    cmds:
+      - dotnet test --solution {{.SOLUTION}} --configuration {{.CONFIGURATION}} -- {{.CLI_ARGS}}
+
+  test:watch:
+    desc: Re-run tests on every file change
+    cmds:
+      - dotnet watch --project {{.TEST_PROJECT}} test
+
+  test:stress:
+    desc: Run the suite N times to shake out flaky concurrency tests (N=10 by default)
+    vars:
+      N: '{{.N | default "10"}}'
+    cmds:
+      - dotnet build {{.SOLUTION}} --configuration {{.CONFIGURATION}}
+      - for: { var: N_LIST }
+        cmd: dotnet test --solution {{.SOLUTION}} --configuration {{.CONFIGURATION}} --no-build
+    env:
+      N_LIST:
+        sh: seq 1 {{.N}}
+
+  coverage:
+    desc: Run tests with code coverage and build an HTML report in {{.COVERAGE_REPORT_DIR}}
+    deps: [tools]
+    cmds:
+      - rm -rf {{.RESULTS_DIR}}
+      - >-
+        dotnet test --solution {{.SOLUTION}} --configuration {{.CONFIGURATION}} --
+        --coverage
+        --coverage-output-format cobertura
+        --coverage-output coverage.cobertura.xml
+        --results-directory {{.RESULTS_DIR}}
+      - >-
+        dotnet reportgenerator
+        -reports:{{.COVERAGE_FILE}}
+        -targetdir:{{.COVERAGE_REPORT_DIR}}
+        -reporttypes:"Html;TextSummary;MarkdownSummaryGithub"
+      - cat {{.COVERAGE_REPORT_DIR}}/Summary.txt
+
+  coverage:check:
+    desc: Fail unless line and branch coverage reach COVERAGE_THRESHOLD (default 100)
+    deps: [coverage]
+    silent: true
+    cmds:
+      - |
+        line=$(sed -n 's/.*<coverage [^>]*line-rate="\([0-9.]*\)".*/\1/p' {{.COVERAGE_FILE}} | head -1)
+        branch=$(sed -n 's/.*<coverage [^>]*branch-rate="\([0-9.]*\)".*/\1/p' {{.COVERAGE_FILE}} | head -1)
+        awk -v l="$line" -v b="$branch" -v t="{{.COVERAGE_THRESHOLD}}" 'BEGIN {
+          lp = l * 100; bp = b * 100;
+          printf "Line coverage: %.1f%%  Branch coverage: %.1f%%  (threshold %s%%)\n", lp, bp, t;
+          if (lp + 1e-9 < t || bp + 1e-9 < t) { print "Coverage below threshold"; exit 1 }
+        }'
+
+  coverage:open:
+    desc: Open the HTML coverage report in the browser
+    deps: [coverage]
+    cmds:
+      - '{{if eq OS "darwin"}}open{{else if eq OS "windows"}}start{{else}}xdg-open{{end}} {{.COVERAGE_REPORT_DIR}}/index.html'
+
+  format:
+    desc: Apply code formatting and analyzer fixes
+    cmds:
+      - dotnet format {{.SOLUTION}}
+
+  format:check:
+    desc: Verify formatting without changing files (same check CI runs)
+    cmds:
+      - dotnet format {{.SOLUTION}} --verify-no-changes
+
+  pack:
+    desc: Build the NuGet package into {{.ARTIFACTS_DIR}}
+    cmds:
+      - dotnet pack {{.PROJECT}} --configuration Release --output {{.ARTIFACTS_DIR}}
+
+  clean:
+    desc: Remove build outputs, test results and artifacts
+    cmds:
+      - dotnet clean {{.SOLUTION}} --configuration {{.CONFIGURATION}}
+      - rm -rf {{.RESULTS_DIR}} {{.ARTIFACTS_DIR}}
+      - find . -type d \( -name bin -o -name obj \) -not -path "./.git/*" -prune -exec rm -rf {} +
+
+  ci:
+    desc: Run everything CI runs, locally (format check, Release build, tests, coverage gate, pack)
+    cmds:
+      - task: format:check
+      - task: build
+        vars: { CONFIGURATION: Release }
+      - task: test
+        vars: { CONFIGURATION: Release }
+      - task: coverage:check
+        vars: { CONFIGURATION: Release }
+      - task: pack

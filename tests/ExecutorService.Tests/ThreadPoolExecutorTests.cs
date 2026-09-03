@@ -56,6 +56,17 @@ public sealed class ThreadPoolExecutorTests
     }
 
     [Fact]
+    public async Task Submit_Func_OperationCanceledExceptionCancelsTask()
+    {
+        using var executor = new ThreadPoolExecutor(1);
+
+        var task = executor.Submit<int>(() => throw new OperationCanceledException());
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task.WaitAsync(Timeout, Ct));
+        Assert.True(task.IsCanceled);
+    }
+
+    [Fact]
     public void Submit_NullThrowsArgumentNull()
     {
         using var executor = new ThreadPoolExecutor(1);
@@ -112,6 +123,43 @@ public sealed class ThreadPoolExecutorTests
     }
 
     [Fact]
+    public void QueuedCount_ReflectsWaitingTasks()
+    {
+        var executor = new ThreadPoolExecutor(1);
+        using var started = new ManualResetEventSlim();
+        using var gate = new ManualResetEventSlim();
+        executor.Execute(() =>
+        {
+            started.Set();
+            gate.Wait(Timeout, Ct);
+        });
+        Assert.True(started.Wait(Timeout, Ct));
+        Assert.Equal(0, executor.QueuedCount);
+
+        executor.Execute(() => { });
+        executor.Execute(() => { });
+
+        Assert.Equal(2, executor.QueuedCount);
+        gate.Set();
+        executor.Dispose();
+        Assert.Equal(0, executor.QueuedCount);
+    }
+
+    [Fact]
+    public async Task Termination_CompletesWhenExecutorTerminates()
+    {
+        var executor = new ThreadPoolExecutor(1);
+        var termination = executor.Termination;
+
+        Assert.False(termination.IsCompleted);
+        executor.Shutdown();
+
+        await termination.WaitAsync(Timeout, Ct);
+        Assert.Same(termination, executor.Termination);
+        Assert.True(executor.IsTerminated);
+    }
+
+    [Fact]
     public async Task Shutdown_RejectsNewTasks_ButRunsQueuedOnes()
     {
         var executor = new ThreadPoolExecutor(1);
@@ -126,7 +174,8 @@ public sealed class ThreadPoolExecutorTests
 #pragma warning disable xUnit2014 // Rejection is thrown synchronously at submission time, not inside the Task.
         Assert.Throws<RejectedExecutionException>(() => { executor.Submit(() => 1); });
 #pragma warning restore xUnit2014
-        Assert.Throws<RejectedExecutionException>(() => executor.Execute(() => { }));
+        var rejected = Assert.Throws<RejectedExecutionException>(() => executor.Execute(() => { }));
+        Assert.IsType<InvalidOperationException>(rejected.InnerException);
 
         gate.Set();
         Assert.Equal("queued", await queued.WaitAsync(Timeout, Ct));
@@ -148,14 +197,17 @@ public sealed class ThreadPoolExecutorTests
         });
         Assert.True(started.Wait(Timeout, Ct));
         var pendingA = executor.Submit(() => 1);
-        var pendingB = executor.Submit(() => 2);
+        var pendingB = executor.Submit(() => { });
+        var executed = false;
+        executor.Execute(() => executed = true);
 
         var dropped = executor.ShutdownNow();
 
-        Assert.Equal(2, dropped.Count);
+        Assert.Equal(3, dropped.Count);
         Assert.All(dropped, t => Assert.True(t.IsCanceled));
         Assert.True(pendingA.IsCanceled);
         Assert.True(pendingB.IsCanceled);
+        Assert.False(executed);
         Assert.True(executor.IsShutdown);
 
         gate.Set();
@@ -184,6 +236,32 @@ public sealed class ThreadPoolExecutorTests
         Assert.True(pending.IsCanceled);
         gate.Set();
         Assert.True(executor.AwaitTermination(Timeout));
+    }
+
+    [Fact]
+    public void Dispatch_AfterShutdownNow_CancelsInsteadOfRunning()
+    {
+        var executor = new ThreadPoolExecutor(1);
+        executor.ShutdownNow();
+        Assert.True(executor.AwaitTermination(Timeout));
+        var ran = false;
+        var item = new Internal.ActionWorkItem(() => ran = true);
+
+        executor.Dispatch(item);
+
+        Assert.True(item.Task.IsCanceled);
+        Assert.False(ran);
+    }
+
+    [Fact]
+    public async Task Dispatch_WhileRunning_RunsItem()
+    {
+        using var executor = new ThreadPoolExecutor(1);
+        var item = new Internal.FuncWorkItem<int>(() => 42);
+
+        executor.Dispatch(item);
+
+        Assert.Equal(42, await item.TypedTask.WaitAsync(Timeout, Ct));
     }
 
     [Fact]
