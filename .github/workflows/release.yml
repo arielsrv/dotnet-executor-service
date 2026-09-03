@@ -5,7 +5,8 @@ on:
     tags: ['v*.*.*']
 
 permissions:
-  contents: write
+  contents: write  # create the GitHub Release
+  id-token: write  # request the GitHub OIDC token for NuGet Trusted Publishing
 
 env:
   DOTNET_NOLOGO: true
@@ -35,8 +36,16 @@ jobs:
       - name: Pack
         run: dotnet pack src/ExecutorService/ExecutorService.csproj --configuration Release --no-build --output artifacts/
 
+      # Exchanges the OIDC token for an API key that is valid for one hour, so it
+      # must be requested immediately before the push.
+      - name: NuGet login (Trusted Publishing)
+        id: nuget-login
+        uses: NuGet/login@v1
+        with:
+          user: arielpineiro  # nuget.org profile name, not the account email
+
       - name: Push to NuGet.org
-        run: dotnet nuget push "artifacts/*.nupkg" --api-key "${{ secrets.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+        run: dotnet nuget push "artifacts/*.nupkg" --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
