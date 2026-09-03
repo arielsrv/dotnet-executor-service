@@ -1,0 +1,14 @@
+<Project>
+
+  <!-- Central Package Management: every PackageReference version lives here. -->
+  <ItemGroup>
+    <!-- Build / packaging -->
+    <PackageVersion Include="MinVer" Version="7.0.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="5.6.0" />
+
+    <!-- Tests -->
+    <PackageVersion Include="xunit.v3" Version="4.0.0" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.0" />
+  </ItemGroup>
+
+</Project>

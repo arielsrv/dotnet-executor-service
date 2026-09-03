@@ -1,0 +1,18 @@
+# Normalize line endings for text files.
+* text=auto
+
+*.cs      text diff=csharp
+*.csproj  text
+*.props   text
+*.targets text
+*.slnx    text
+*.json    text
+*.yml     text
+*.yaml    text
+*.md      text
+*.sh      text eol=lf
+
+# Binary files
+*.png  binary
+*.snk  binary
+*.ico  binary

@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>ExecutorService</RootNamespace>
+    <AssemblyName>ExecutorService</AssemblyName>
+    <IsAotCompatible>true</IsAotCompatible>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <PackageId>ExecutorService</PackageId>
+    <Title>ExecutorService</Title>
+    <Description>A .NET port of Java's java.util.concurrent.ExecutorService: bounded, dedicated-thread task executors with explicit lifecycle (shutdown, shutdownNow, awaitTermination) and Task-based futures.</Description>
+    <PackageTags>executor;executorservice;threadpool;concurrency;threading;java;tasks</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>See https://github.com/arielsrv/dotnet-executor-service/blob/main/CHANGELOG.md</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MinVer" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ExecutorService.Tests" />
+  </ItemGroup>
+
+</Project>
