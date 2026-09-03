@@ -70,11 +70,11 @@ tasks:
     cmds:
       - rm -rf {{.RESULTS_DIR}}
       - >-
-        dotnet test --solution {{.SOLUTION}} --configuration {{.CONFIGURATION}} --
+        dotnet test --solution {{.SOLUTION}} --configuration {{.CONFIGURATION}}
+        --results-directory {{.RESULTS_DIR}} --
         --coverage
         --coverage-output-format cobertura
         --coverage-output coverage.cobertura.xml
-        --results-directory {{.RESULTS_DIR}}
       - >-
         dotnet reportgenerator
         -reports:{{.COVERAGE_FILE}}
