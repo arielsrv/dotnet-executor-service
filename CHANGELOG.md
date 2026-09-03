@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `IExecutorService.ShutdownToken`, canceled by `ShutdownNow` so tasks already running can stop
+  cooperatively. `Shutdown` never cancels it. Throwing `OperationCanceledException` from a task
+  (e.g. via `ThrowIfCancellationRequested`) transitions its `Task` to `Canceled`.
+
 ## [0.2.0] - 2026-09-03
 
 ### Added

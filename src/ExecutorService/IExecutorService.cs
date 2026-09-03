@@ -32,6 +32,18 @@ public interface IExecutorService : IExecutor, IDisposable, IAsyncDisposable
     bool IsTerminated { get; }
 
     /// <summary>
+    ///     Gets a token that is canceled by <see cref="ShutdownNow" />. Observing it is the only way a task
+    ///     already running can be stopped, because .NET has no thread interruption.
+    /// </summary>
+    /// <remarks>
+    ///     The graceful <see cref="Shutdown" /> never cancels this token: it lets queued tasks run to
+    ///     completion. Throwing <see cref="OperationCanceledException" /> from a task — for example via
+    ///     <see cref="CancellationToken.ThrowIfCancellationRequested" /> — transitions that task's
+    ///     <see cref="Task" /> to <see cref="TaskStatus.Canceled" />.
+    /// </remarks>
+    CancellationToken ShutdownToken { get; }
+
+    /// <summary>
     ///     Initiates an orderly shutdown in which previously submitted tasks are executed,
     ///     but no new tasks will be accepted. Invocation has no additional effect if already shut down.
     ///     This method does not wait for previously submitted tasks to complete execution;
@@ -45,8 +57,9 @@ public interface IExecutorService : IExecutor, IDisposable, IAsyncDisposable
     ///     <see cref="TaskStatus.Canceled" /> state.
     /// </summary>
     /// <remarks>
-    ///     Unlike Java, .NET has no thread interruption; tasks that are already running are not
-    ///     stopped. Cooperative cancellation must be implemented by the task itself.
+    ///     Unlike Java, .NET has no thread interruption; tasks that are already running are not forcibly
+    ///     stopped. They can stop cooperatively by observing <see cref="ShutdownToken" />, which this
+    ///     method cancels before draining the queue.
     /// </remarks>
     /// <returns>The tasks that never commenced execution.</returns>
     IReadOnlyList<Task> ShutdownNow();

@@ -356,6 +356,61 @@ public sealed class ThreadPoolExecutorTests
         Assert.True(executor.AwaitTermination(Timeout));
     }
 
+    [Fact]
+    public void ShutdownToken_IsNotCanceledWhileRunning()
+    {
+        using ThreadPoolExecutor executor = new(1);
+
+        Assert.True(executor.ShutdownToken.CanBeCanceled);
+        Assert.False(executor.ShutdownToken.IsCancellationRequested);
+    }
+
+    [Fact]
+    public void Shutdown_DoesNotCancelShutdownToken()
+    {
+        ThreadPoolExecutor executor = new(1);
+
+        executor.Shutdown();
+
+        Assert.True(executor.AwaitTermination(Timeout));
+        Assert.False(executor.ShutdownToken.IsCancellationRequested);
+    }
+
+    [Fact]
+    public async Task ShutdownNow_CancelsShutdownTokenSoRunningTaskStopsCooperatively()
+    {
+        ThreadPoolExecutor executor = new(1);
+        using ManualResetEventSlim started = new();
+        Task running = executor.Submit(() =>
+        {
+            started.Set();
+            while (!executor.ShutdownToken.IsCancellationRequested)
+            {
+                Thread.Sleep(1);
+            }
+
+            executor.ShutdownToken.ThrowIfCancellationRequested();
+        });
+        Assert.True(started.Wait(Timeout, Ct));
+
+        executor.ShutdownNow();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => running.WaitAsync(Timeout, Ct));
+        Assert.True(running.IsCanceled);
+        Assert.True(await executor.AwaitTerminationAsync(Timeout, Ct));
+    }
+
+    [Fact]
+    public void ShutdownToken_RemainsObservableAfterTermination()
+    {
+        ThreadPoolExecutor executor = new(1);
+
+        executor.ShutdownNow();
+
+        Assert.True(executor.AwaitTermination(Timeout));
+        Assert.True(executor.ShutdownToken.IsCancellationRequested);
+    }
+
     private static void InterlockedMax(ref int location, int value)
     {
         int current;

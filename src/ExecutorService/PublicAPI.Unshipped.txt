@@ -1,1 +1,3 @@
 #nullable enable
+ExecutorService.IExecutorService.ShutdownToken.get -> System.Threading.CancellationToken
+ExecutorService.ThreadPoolExecutor.ShutdownToken.get -> System.Threading.CancellationToken

@@ -27,6 +27,11 @@ public sealed class ThreadPoolExecutor : IExecutorService
     private const int Stopped = 2;
 
     private readonly BlockingCollection<WorkItem> _queue = new(new ConcurrentQueue<WorkItem>());
+
+    // Intentionally never disposed, for the same reason as the queue: ShutdownToken stays observable
+    // after termination, and disposing the source would make Token throw ObjectDisposedException.
+    // No OS handle is held unless a caller asks for the token's WaitHandle.
+    private readonly CancellationTokenSource _shutdownNow = new();
     private readonly TaskCompletionSource _terminated = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly Thread[] _workers;
     private int _liveWorkers;
@@ -75,6 +80,9 @@ public sealed class ThreadPoolExecutor : IExecutorService
     public bool IsTerminated => _terminated.Task.IsCompleted;
 
     /// <inheritdoc />
+    public CancellationToken ShutdownToken => _shutdownNow.Token;
+
+    /// <inheritdoc />
     public void Execute(Action command)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -116,6 +124,10 @@ public sealed class ThreadPoolExecutor : IExecutorService
         {
             _queue.CompleteAdding();
         }
+
+        // Signalled before draining so tasks already running observe it as early as possible.
+        // Idempotent: cancelling an already-cancelled source is a no-op.
+        _shutdownNow.Cancel();
 
         List<Task> pending = new();
         while (_queue.TryTake(out WorkItem? item))
