@@ -216,9 +216,10 @@ public sealed class ThreadPoolExecutor : IExecutorService
         }
         finally
         {
+            // The queue is intentionally never disposed: ShutdownNow and QueuedCount remain valid
+            // after termination, and BlockingCollection holds no OS handles unless a WaitHandle is requested.
             if (Interlocked.Decrement(ref _liveWorkers) == 0)
             {
-                _queue.Dispose();
                 _terminated.TrySetResult();
             }
         }

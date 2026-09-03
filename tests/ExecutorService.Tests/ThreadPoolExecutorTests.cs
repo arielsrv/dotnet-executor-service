@@ -167,8 +167,14 @@ public sealed class ThreadPoolExecutorTests
     public void ShutdownNow_AfterShutdown_StillDrainsQueue()
     {
         var executor = new ThreadPoolExecutor(1);
+        using var started = new ManualResetEventSlim();
         using var gate = new ManualResetEventSlim();
-        _ = executor.Submit(() => gate.Wait(Timeout, Ct));
+        _ = executor.Submit(() =>
+        {
+            started.Set();
+            gate.Wait(Timeout, Ct);
+        });
+        Assert.True(started.Wait(Timeout, Ct));
         var pending = executor.Submit(() => 1);
 
         executor.Shutdown();
@@ -178,6 +184,19 @@ public sealed class ThreadPoolExecutorTests
         Assert.True(pending.IsCanceled);
         gate.Set();
         Assert.True(executor.AwaitTermination(Timeout));
+    }
+
+    [Fact]
+    public void ShutdownNow_AfterTermination_ReturnsEmptyList()
+    {
+        var executor = new ThreadPoolExecutor(1);
+        executor.Shutdown();
+        Assert.True(executor.AwaitTermination(Timeout));
+
+        var dropped = executor.ShutdownNow();
+
+        Assert.Empty(dropped);
+        Assert.True(executor.IsTerminated);
     }
 
     [Fact]
