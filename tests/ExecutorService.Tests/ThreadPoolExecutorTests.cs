@@ -1,3 +1,5 @@
+using ExecutorService.Internal;
+
 namespace ExecutorService.Tests;
 
 public sealed class ThreadPoolExecutorTests
@@ -15,9 +17,9 @@ public sealed class ThreadPoolExecutorTests
     [Fact]
     public async Task Submit_Func_ReturnsResult()
     {
-        using var executor = new ThreadPoolExecutor(2);
+        using ThreadPoolExecutor executor = new(2);
 
-        var result = await executor.Submit(() => 21 * 2).WaitAsync(Timeout, Ct);
+        int result = await executor.Submit(() => 21 * 2).WaitAsync(Timeout, Ct);
 
         Assert.Equal(42, result);
     }
@@ -25,7 +27,7 @@ public sealed class ThreadPoolExecutorTests
     [Fact]
     public async Task Submit_Action_RunsOnNamedWorkerThread()
     {
-        using var executor = new ThreadPoolExecutor(1, new ThreadPoolExecutorOptions { ThreadNamePrefix = "unit" });
+        using ThreadPoolExecutor executor = new(1, new ThreadPoolExecutorOptions { ThreadNamePrefix = "unit" });
         string? threadName = null;
 
         await executor.Submit(() => threadName = Thread.CurrentThread.Name).WaitAsync(Timeout, Ct);
@@ -36,20 +38,21 @@ public sealed class ThreadPoolExecutorTests
     [Fact]
     public async Task Submit_ExceptionIsSurfacedThroughTask()
     {
-        using var executor = new ThreadPoolExecutor(1);
+        using ThreadPoolExecutor executor = new(1);
 
-        var task = executor.Submit<int>(() => throw new InvalidOperationException("boom"));
+        Task<int> task = executor.Submit<int>(() => throw new InvalidOperationException("boom"));
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => task.WaitAsync(Timeout, Ct));
+        InvalidOperationException ex =
+            await Assert.ThrowsAsync<InvalidOperationException>(() => task.WaitAsync(Timeout, Ct));
         Assert.Equal("boom", ex.Message);
     }
 
     [Fact]
     public async Task Submit_OperationCanceledExceptionCancelsTask()
     {
-        using var executor = new ThreadPoolExecutor(1);
+        using ThreadPoolExecutor executor = new(1);
 
-        var task = executor.Submit(() => throw new OperationCanceledException());
+        Task task = executor.Submit(() => throw new OperationCanceledException());
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task.WaitAsync(Timeout, Ct));
         Assert.True(task.IsCanceled);
@@ -58,9 +61,9 @@ public sealed class ThreadPoolExecutorTests
     [Fact]
     public async Task Submit_Func_OperationCanceledExceptionCancelsTask()
     {
-        using var executor = new ThreadPoolExecutor(1);
+        using ThreadPoolExecutor executor = new(1);
 
-        var task = executor.Submit<int>(() => throw new OperationCanceledException());
+        Task<int> task = executor.Submit<int>(() => throw new OperationCanceledException());
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task.WaitAsync(Timeout, Ct));
         Assert.True(task.IsCanceled);
@@ -69,10 +72,10 @@ public sealed class ThreadPoolExecutorTests
     [Fact]
     public void Submit_NullThrowsArgumentNull()
     {
-        using var executor = new ThreadPoolExecutor(1);
+        using ThreadPoolExecutor executor = new(1);
 
 #pragma warning disable xUnit2014 // Submit validates arguments synchronously before returning a Task.
-        Assert.Throws<ArgumentNullException>(() => { executor.Submit((Action)null!); });
+        Assert.Throws<ArgumentNullException>(() => { executor.Submit(null!); });
         Assert.Throws<ArgumentNullException>(() => { executor.Submit((Func<int>)null!); });
 #pragma warning restore xUnit2014
         Assert.Throws<ArgumentNullException>(() => executor.Execute(null!));
@@ -81,8 +84,8 @@ public sealed class ThreadPoolExecutorTests
     [Fact]
     public void Execute_RunsCommand()
     {
-        using var executor = new ThreadPoolExecutor(1);
-        using var ran = new ManualResetEventSlim();
+        using ThreadPoolExecutor executor = new(1);
+        using ManualResetEventSlim ran = new();
 
         executor.Execute(ran.Set);
 
@@ -92,10 +95,10 @@ public sealed class ThreadPoolExecutorTests
     [Fact]
     public async Task Execute_ExceptionDoesNotKillWorker()
     {
-        using var executor = new ThreadPoolExecutor(1);
+        using ThreadPoolExecutor executor = new(1);
 
         executor.Execute(() => throw new InvalidOperationException());
-        var result = await executor.Submit(() => "alive").WaitAsync(Timeout, Ct);
+        string result = await executor.Submit(() => "alive").WaitAsync(Timeout, Ct);
 
         Assert.Equal("alive", result);
     }
@@ -105,13 +108,13 @@ public sealed class ThreadPoolExecutorTests
     {
         const int threads = 2;
         const int tasks = 20;
-        using var executor = new ThreadPoolExecutor(threads);
-        var concurrent = 0;
-        var maxConcurrent = 0;
+        using ThreadPoolExecutor executor = new(threads);
+        int concurrent = 0;
+        int maxConcurrent = 0;
 
-        var all = Enumerable.Range(0, tasks).Select(_ => executor.Submit(() =>
+        IEnumerable<Task> all = Enumerable.Range(0, tasks).Select(_ => executor.Submit(() =>
         {
-            var now = Interlocked.Increment(ref concurrent);
+            int now = Interlocked.Increment(ref concurrent);
             InterlockedMax(ref maxConcurrent, now);
             Thread.Sleep(10);
             Interlocked.Decrement(ref concurrent);
@@ -125,9 +128,9 @@ public sealed class ThreadPoolExecutorTests
     [Fact]
     public void QueuedCount_ReflectsWaitingTasks()
     {
-        var executor = new ThreadPoolExecutor(1);
-        using var started = new ManualResetEventSlim();
-        using var gate = new ManualResetEventSlim();
+        ThreadPoolExecutor executor = new(1);
+        using ManualResetEventSlim started = new();
+        using ManualResetEventSlim gate = new();
         executor.Execute(() =>
         {
             started.Set();
@@ -148,8 +151,8 @@ public sealed class ThreadPoolExecutorTests
     [Fact]
     public async Task Termination_CompletesWhenExecutorTerminates()
     {
-        var executor = new ThreadPoolExecutor(1);
-        var termination = executor.Termination;
+        ThreadPoolExecutor executor = new(1);
+        Task termination = executor.Termination;
 
         Assert.False(termination.IsCompleted);
         executor.Shutdown();
@@ -162,10 +165,10 @@ public sealed class ThreadPoolExecutorTests
     [Fact]
     public async Task Shutdown_RejectsNewTasks_ButRunsQueuedOnes()
     {
-        var executor = new ThreadPoolExecutor(1);
-        using var gate = new ManualResetEventSlim();
-        var blocker = executor.Submit(() => gate.Wait(Timeout, Ct));
-        var queued = executor.Submit(() => "queued");
+        ThreadPoolExecutor executor = new(1);
+        using ManualResetEventSlim gate = new();
+        Task<bool> blocker = executor.Submit(() => gate.Wait(Timeout, Ct));
+        Task<string> queued = executor.Submit(() => "queued");
 
         executor.Shutdown();
 
@@ -174,7 +177,8 @@ public sealed class ThreadPoolExecutorTests
 #pragma warning disable xUnit2014 // Rejection is thrown synchronously at submission time, not inside the Task.
         Assert.Throws<RejectedExecutionException>(() => { executor.Submit(() => 1); });
 #pragma warning restore xUnit2014
-        var rejected = Assert.Throws<RejectedExecutionException>(() => executor.Execute(() => { }));
+        RejectedExecutionException rejected =
+            Assert.Throws<RejectedExecutionException>(() => executor.Execute(() => { }));
         Assert.IsType<InvalidOperationException>(rejected.InnerException);
 
         gate.Set();
@@ -187,21 +191,21 @@ public sealed class ThreadPoolExecutorTests
     [Fact]
     public async Task ShutdownNow_CancelsPendingTasksAndReturnsThem()
     {
-        var executor = new ThreadPoolExecutor(1);
-        using var started = new ManualResetEventSlim();
-        using var gate = new ManualResetEventSlim();
-        var running = executor.Submit(() =>
+        ThreadPoolExecutor executor = new(1);
+        using ManualResetEventSlim started = new();
+        using ManualResetEventSlim gate = new();
+        Task running = executor.Submit(() =>
         {
             started.Set();
             gate.Wait(Timeout, Ct);
         });
         Assert.True(started.Wait(Timeout, Ct));
-        var pendingA = executor.Submit(() => 1);
-        var pendingB = executor.Submit(() => { });
-        var executed = false;
+        Task<int> pendingA = executor.Submit(() => 1);
+        Task pendingB = executor.Submit(() => { });
+        bool executed = false;
         executor.Execute(() => executed = true);
 
-        var dropped = executor.ShutdownNow();
+        IReadOnlyList<Task> dropped = executor.ShutdownNow();
 
         Assert.Equal(3, dropped.Count);
         Assert.All(dropped, t => Assert.True(t.IsCanceled));
@@ -218,19 +222,19 @@ public sealed class ThreadPoolExecutorTests
     [Fact]
     public void ShutdownNow_AfterShutdown_StillDrainsQueue()
     {
-        var executor = new ThreadPoolExecutor(1);
-        using var started = new ManualResetEventSlim();
-        using var gate = new ManualResetEventSlim();
+        ThreadPoolExecutor executor = new(1);
+        using ManualResetEventSlim started = new();
+        using ManualResetEventSlim gate = new();
         _ = executor.Submit(() =>
         {
             started.Set();
             gate.Wait(Timeout, Ct);
         });
         Assert.True(started.Wait(Timeout, Ct));
-        var pending = executor.Submit(() => 1);
+        Task<int> pending = executor.Submit(() => 1);
 
         executor.Shutdown();
-        var dropped = executor.ShutdownNow();
+        IReadOnlyList<Task> dropped = executor.ShutdownNow();
 
         Assert.Single(dropped);
         Assert.True(pending.IsCanceled);
@@ -241,11 +245,11 @@ public sealed class ThreadPoolExecutorTests
     [Fact]
     public void Dispatch_AfterShutdownNow_CancelsInsteadOfRunning()
     {
-        var executor = new ThreadPoolExecutor(1);
+        ThreadPoolExecutor executor = new(1);
         executor.ShutdownNow();
         Assert.True(executor.AwaitTermination(Timeout));
-        var ran = false;
-        var item = new Internal.ActionWorkItem(() => ran = true);
+        bool ran = false;
+        ActionWorkItem item = new(() => ran = true);
 
         executor.Dispatch(item);
 
@@ -256,8 +260,8 @@ public sealed class ThreadPoolExecutorTests
     [Fact]
     public async Task Dispatch_WhileRunning_RunsItem()
     {
-        using var executor = new ThreadPoolExecutor(1);
-        var item = new Internal.FuncWorkItem<int>(() => 42);
+        using ThreadPoolExecutor executor = new(1);
+        FuncWorkItem<int> item = new(() => 42);
 
         executor.Dispatch(item);
 
@@ -267,11 +271,11 @@ public sealed class ThreadPoolExecutorTests
     [Fact]
     public void ShutdownNow_AfterTermination_ReturnsEmptyList()
     {
-        var executor = new ThreadPoolExecutor(1);
+        ThreadPoolExecutor executor = new(1);
         executor.Shutdown();
         Assert.True(executor.AwaitTermination(Timeout));
 
-        var dropped = executor.ShutdownNow();
+        IReadOnlyList<Task> dropped = executor.ShutdownNow();
 
         Assert.Empty(dropped);
         Assert.True(executor.IsTerminated);
@@ -280,7 +284,7 @@ public sealed class ThreadPoolExecutorTests
     [Fact]
     public void AwaitTermination_TimesOutWhileRunning()
     {
-        using var executor = new ThreadPoolExecutor(1);
+        using ThreadPoolExecutor executor = new(1);
 
         Assert.False(executor.AwaitTermination(TimeSpan.FromMilliseconds(20)));
         Assert.False(executor.IsTerminated);
@@ -289,7 +293,7 @@ public sealed class ThreadPoolExecutorTests
     [Fact]
     public async Task AwaitTerminationAsync_ReturnsFalseOnTimeout_TrueAfterShutdown()
     {
-        var executor = new ThreadPoolExecutor(1);
+        ThreadPoolExecutor executor = new(1);
 
         Assert.False(await executor.AwaitTerminationAsync(TimeSpan.FromMilliseconds(20), Ct));
 
@@ -301,9 +305,9 @@ public sealed class ThreadPoolExecutorTests
     [Fact]
     public void Dispose_ShutsDownAndWaitsForQueuedWork()
     {
-        var executor = new ThreadPoolExecutor(2);
-        var completed = 0;
-        for (var i = 0; i < 10; i++)
+        ThreadPoolExecutor executor = new(2);
+        int completed = 0;
+        for (int i = 0; i < 10; i++)
         {
             executor.Execute(() =>
             {
@@ -321,8 +325,8 @@ public sealed class ThreadPoolExecutorTests
     [Fact]
     public async Task DisposeAsync_ShutsDownAndWaits()
     {
-        var executor = new ThreadPoolExecutor(1);
-        var task = executor.Submit(() => 7);
+        ThreadPoolExecutor executor = new(1);
+        Task<int> task = executor.Submit(() => 7);
 
         await executor.DisposeAsync();
 
@@ -333,9 +337,9 @@ public sealed class ThreadPoolExecutorTests
     [Fact]
     public async Task Dispose_FromWorkerThread_DoesNotDeadlock()
     {
-        var executor = new ThreadPoolExecutor(1);
+        ThreadPoolExecutor executor = new(1);
 
-        var task = executor.Submit(executor.Dispose);
+        Task task = executor.Submit(executor.Dispose);
 
         await task.WaitAsync(Timeout, Ct);
         Assert.True(await executor.AwaitTerminationAsync(Timeout, Ct));
@@ -344,7 +348,7 @@ public sealed class ThreadPoolExecutorTests
     [Fact]
     public void Shutdown_IsIdempotent()
     {
-        var executor = new ThreadPoolExecutor(1);
+        ThreadPoolExecutor executor = new(1);
 
         executor.Shutdown();
         executor.Shutdown();
@@ -362,7 +366,6 @@ public sealed class ThreadPoolExecutorTests
             {
                 return;
             }
-        }
-        while (Interlocked.CompareExchange(ref location, value, current) != current);
+        } while (Interlocked.CompareExchange(ref location, value, current) != current);
     }
 }

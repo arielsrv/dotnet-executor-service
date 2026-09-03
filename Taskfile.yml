@@ -58,11 +58,11 @@ tasks:
       N: '{{.N | default "10"}}'
     cmds:
       - dotnet build {{.SOLUTION}} --configuration {{.CONFIGURATION}}
-      - for: { var: N_LIST }
-        cmd: dotnet test --solution {{.SOLUTION}} --configuration {{.CONFIGURATION}} --no-build
-    env:
-      N_LIST:
-        sh: seq 1 {{.N}}
+      - |
+        for i in $(seq 1 {{.N}}); do
+          echo "== run $i/{{.N}}"
+          dotnet test --solution {{.SOLUTION}} --configuration {{.CONFIGURATION}} --no-build || exit 1
+        done
 
   coverage:
     desc: Run tests with code coverage and build an HTML report in {{.COVERAGE_REPORT_DIR}}

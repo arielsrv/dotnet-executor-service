@@ -1,8 +1,8 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/ExecutorService/ExecutorService.csproj" />
+    <Project Path="src/ExecutorService/ExecutorService.csproj"/>
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/ExecutorService.Tests/ExecutorService.Tests.csproj" />
+    <Project Path="tests/ExecutorService.Tests/ExecutorService.Tests.csproj"/>
   </Folder>
 </Solution>

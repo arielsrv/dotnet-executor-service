@@ -5,20 +5,20 @@ using ExecutorService.Internal;
 namespace ExecutorService;
 
 /// <summary>
-/// An <see cref="IExecutorService"/> that executes each submitted task using one of a fixed number
-/// of dedicated worker threads, fed from an unbounded FIFO queue.
-/// Mirrors the fixed-size configuration of <c>java.util.concurrent.ThreadPoolExecutor</c>.
+///     An <see cref="IExecutorService" /> that executes each submitted task using one of a fixed number
+///     of dedicated worker threads, fed from an unbounded FIFO queue.
+///     Mirrors the fixed-size configuration of <c>java.util.concurrent.ThreadPoolExecutor</c>.
 /// </summary>
 /// <remarks>
-/// <para>
-/// Worker threads are created eagerly in the constructor and live until the executor terminates.
-/// Because they are dedicated threads (not the shared .NET <see cref="ThreadPool"/>), blocking
-/// work does not starve the rest of the process.
-/// </para>
-/// <para>
-/// Exceptions thrown by tasks are captured in the returned <see cref="Task"/>. For
-/// <see cref="Execute"/>, which returns nothing, exceptions are silently observed and dropped.
-/// </para>
+///     <para>
+///         Worker threads are created eagerly in the constructor and live until the executor terminates.
+///         Because they are dedicated threads (not the shared .NET <see cref="ThreadPool" />), blocking
+///         work does not starve the rest of the process.
+///     </para>
+///     <para>
+///         Exceptions thrown by tasks are captured in the returned <see cref="Task" />. For
+///         <see cref="Execute" />, which returns nothing, exceptions are silently observed and dropped.
+///     </para>
 /// </remarks>
 public sealed class ThreadPoolExecutor : IExecutorService
 {
@@ -27,17 +27,17 @@ public sealed class ThreadPoolExecutor : IExecutorService
     private const int Stopped = 2;
 
     private readonly BlockingCollection<WorkItem> _queue = new(new ConcurrentQueue<WorkItem>());
-    private readonly Thread[] _workers;
     private readonly TaskCompletionSource _terminated = new(TaskCreationOptions.RunContinuationsAsynchronously);
-    private int _state = Running;
+    private readonly Thread[] _workers;
     private int _liveWorkers;
+    private int _state = Running;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ThreadPoolExecutor"/> class with a fixed number of threads.
+    ///     Initializes a new instance of the <see cref="ThreadPoolExecutor" /> class with a fixed number of threads.
     /// </summary>
     /// <param name="threadCount">Number of worker threads. Must be at least 1.</param>
-    /// <param name="options">Thread creation options, or <see langword="null"/> for defaults.</param>
-    /// <exception cref="ArgumentOutOfRangeException"><paramref name="threadCount"/> is less than 1.</exception>
+    /// <param name="options">Thread creation options, or <see langword="null" /> for defaults.</param>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="threadCount" /> is less than 1.</exception>
     public ThreadPoolExecutor(int threadCount, ThreadPoolExecutorOptions? options = null)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(threadCount, 1);
@@ -46,13 +46,13 @@ public sealed class ThreadPoolExecutor : IExecutorService
         _workers = new Thread[threadCount];
         _liveWorkers = threadCount;
 
-        for (var i = 0; i < threadCount; i++)
+        for (int i = 0; i < threadCount; i++)
         {
-            var worker = new Thread(WorkerLoop)
+            Thread worker = new(WorkerLoop)
             {
                 Name = $"{options.ThreadNamePrefix}-{i}",
                 IsBackground = options.IsBackground,
-                Priority = options.Priority,
+                Priority = options.Priority
             };
             _workers[i] = worker;
             worker.Start();
@@ -85,7 +85,7 @@ public sealed class ThreadPoolExecutor : IExecutorService
     public Task Submit(Action task)
     {
         ArgumentNullException.ThrowIfNull(task);
-        var item = new ActionWorkItem(task);
+        ActionWorkItem item = new(task);
         Enqueue(item);
         return item.Task;
     }
@@ -94,7 +94,7 @@ public sealed class ThreadPoolExecutor : IExecutorService
     public Task<TResult> Submit<TResult>(Func<TResult> task)
     {
         ArgumentNullException.ThrowIfNull(task);
-        var item = new FuncWorkItem<TResult>(task);
+        FuncWorkItem<TResult> item = new(task);
         Enqueue(item);
         return item.TypedTask;
     }
@@ -111,14 +111,14 @@ public sealed class ThreadPoolExecutor : IExecutorService
     /// <inheritdoc />
     public IReadOnlyList<Task> ShutdownNow()
     {
-        var previous = Interlocked.Exchange(ref _state, Stopped);
+        int previous = Interlocked.Exchange(ref _state, Stopped);
         if (previous == Running)
         {
             _queue.CompleteAdding();
         }
 
-        var pending = new List<Task>();
-        while (_queue.TryTake(out var item))
+        List<Task> pending = new();
+        while (_queue.TryTake(out WorkItem? item))
         {
             item.Cancel();
             pending.Add(item.Task);
@@ -128,7 +128,10 @@ public sealed class ThreadPoolExecutor : IExecutorService
     }
 
     /// <inheritdoc />
-    public bool AwaitTermination(TimeSpan timeout) => _terminated.Task.Wait(timeout);
+    public bool AwaitTermination(TimeSpan timeout)
+    {
+        return _terminated.Task.Wait(timeout);
+    }
 
     /// <inheritdoc />
     public async Task<bool> AwaitTerminationAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
@@ -145,8 +148,8 @@ public sealed class ThreadPoolExecutor : IExecutorService
     }
 
     /// <summary>
-    /// Shuts down the executor and blocks until all queued tasks finish.
-    /// Does not block when called from one of the executor's own worker threads.
+    ///     Shuts down the executor and blocks until all queued tasks finish.
+    ///     Does not block when called from one of the executor's own worker threads.
     /// </summary>
     public void Dispose()
     {
@@ -158,7 +161,7 @@ public sealed class ThreadPoolExecutor : IExecutorService
     }
 
     /// <summary>
-    /// Shuts down the executor and asynchronously waits until all queued tasks finish.
+    ///     Shuts down the executor and asynchronously waits until all queued tasks finish.
     /// </summary>
     /// <returns>A task that completes when the executor has terminated.</returns>
     public async ValueTask DisposeAsync()
@@ -183,8 +186,8 @@ public sealed class ThreadPoolExecutor : IExecutorService
 
     private bool IsWorkerThread()
     {
-        var current = Thread.CurrentThread;
-        foreach (var worker in _workers)
+        Thread current = Thread.CurrentThread;
+        foreach (Thread worker in _workers)
         {
             if (ReferenceEquals(worker, current))
             {
@@ -196,8 +199,8 @@ public sealed class ThreadPoolExecutor : IExecutorService
     }
 
     /// <summary>
-    /// Runs <paramref name="item"/> on the calling thread, or cancels it without running when
-    /// <see cref="ShutdownNow"/> has already been called (the worker dequeued it before the drain).
+    ///     Runs <paramref name="item" /> on the calling thread, or cancels it without running when
+    ///     <see cref="ShutdownNow" /> has already been called (the worker dequeued it before the drain).
     /// </summary>
     internal void Dispatch(WorkItem item)
     {
@@ -214,7 +217,7 @@ public sealed class ThreadPoolExecutor : IExecutorService
     {
         try
         {
-            foreach (var item in _queue.GetConsumingEnumerable())
+            foreach (WorkItem item in _queue.GetConsumingEnumerable())
             {
                 Dispatch(item);
             }

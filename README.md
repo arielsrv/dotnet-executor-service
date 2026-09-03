@@ -5,14 +5,15 @@
 [![NuGet Downloads](https://img.shields.io/nuget/dt/ExecutorService.svg)](https://www.nuget.org/packages/ExecutorService)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-A .NET port of Java's [`java.util.concurrent.ExecutorService`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/ExecutorService.html):
-bounded executors backed by **dedicated threads**, an explicit **lifecycle** (`Shutdown`, `ShutdownNow`, `AwaitTermination`),
-and `Task`-based futures.
+A .NET port of Java's [
+`java.util.concurrent.ExecutorService`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/ExecutorService.html):
+bounded executors backed by **dedicated threads**, an explicit **lifecycle** (`Shutdown`, `ShutdownNow`,
+`AwaitTermination`), and `Task`-based futures.
 
 ## Why?
 
-The .NET `ThreadPool` is a single, process-wide, elastic pool. That is the right default for async I/O,
-but sometimes you want what Java developers reach for with `Executors.newFixedThreadPool(n)`:
+The .NET `ThreadPool` is a single, process-wide, elastic pool. That is the right default for async I/O, but sometimes
+you want what Java developers reach for with `Executors.newFixedThreadPool(n)`:
 
 - A **fixed number of threads** for a specific workload, isolated from the rest of the process.
 - Safe **blocking work** without starving the shared pool.
@@ -56,8 +57,8 @@ IReadOnlyList<Task> neverStarted = executor.ShutdownNow();
 // each Task in `neverStarted` is in the Canceled state
 ```
 
-Tasks that are already running are **not** interrupted. .NET has no thread interruption;
-implement cooperative cancellation inside your task if you need it.
+Tasks that are already running are **not** interrupted. .NET has no thread interruption; implement cooperative
+cancellation inside your task if you need it.
 
 ### Configuring worker threads
 
@@ -72,20 +73,20 @@ var executor = Executors.NewFixedThreadPool(2, new ThreadPoolExecutorOptions
 
 ## Java to .NET mapping
 
-| Java                                   | ExecutorService (.NET)                         |
-|----------------------------------------|------------------------------------------------|
-| `Executor`                             | `IExecutor`                                    |
-| `ExecutorService`                      | `IExecutorService`                             |
-| `Executors.newFixedThreadPool(n)`      | `Executors.NewFixedThreadPool(n)`              |
-| `Executors.newSingleThreadExecutor()`  | `Executors.NewSingleThreadExecutor()`          |
-| `execute(Runnable)`                    | `Execute(Action)`                              |
-| `submit(Runnable)` / `submit(Callable)`| `Submit(Action)` / `Submit<T>(Func<T>)`        |
-| `Future<T>`                            | `Task<T>`                                      |
-| `shutdown()` / `shutdownNow()`         | `Shutdown()` / `ShutdownNow()`                 |
-| `awaitTermination(timeout, unit)`      | `AwaitTermination(TimeSpan)` / `AwaitTerminationAsync(TimeSpan, CancellationToken)` |
-| `isShutdown()` / `isTerminated()`      | `IsShutdown` / `IsTerminated`                  |
-| `close()`                              | `Dispose()` / `DisposeAsync()`                 |
-| `RejectedExecutionException`           | `RejectedExecutionException`                   |
+| Java                                    | ExecutorService (.NET)                                                              |
+|-----------------------------------------|-------------------------------------------------------------------------------------|
+| `Executor`                              | `IExecutor`                                                                         |
+| `ExecutorService`                       | `IExecutorService`                                                                  |
+| `Executors.newFixedThreadPool(n)`       | `Executors.NewFixedThreadPool(n)`                                                   |
+| `Executors.newSingleThreadExecutor()`   | `Executors.NewSingleThreadExecutor()`                                               |
+| `execute(Runnable)`                     | `Execute(Action)`                                                                   |
+| `submit(Runnable)` / `submit(Callable)` | `Submit(Action)` / `Submit<T>(Func<T>)`                                             |
+| `Future<T>`                             | `Task<T>`                                                                           |
+| `shutdown()` / `shutdownNow()`          | `Shutdown()` / `ShutdownNow()`                                                      |
+| `awaitTermination(timeout, unit)`       | `AwaitTermination(TimeSpan)` / `AwaitTerminationAsync(TimeSpan, CancellationToken)` |
+| `isShutdown()` / `isTerminated()`       | `IsShutdown` / `IsTerminated`                                                       |
+| `close()`                               | `Dispose()` / `DisposeAsync()`                                                      |
+| `RejectedExecutionException`            | `RejectedExecutionException`                                                        |
 
 ## Roadmap
 

@@ -5,28 +5,28 @@ public sealed class ExecutorsTests
     [Fact]
     public void NewFixedThreadPool_CreatesPoolWithRequestedThreads()
     {
-        using var executor = Executors.NewFixedThreadPool(4);
+        using IExecutorService executor = Executors.NewFixedThreadPool(4);
 
-        var pool = Assert.IsType<ThreadPoolExecutor>(executor);
+        ThreadPoolExecutor pool = Assert.IsType<ThreadPoolExecutor>(executor);
         Assert.Equal(4, pool.ThreadCount);
     }
 
     [Fact]
     public void NewSingleThreadExecutor_CreatesPoolWithOneThread()
     {
-        using var executor = Executors.NewSingleThreadExecutor();
+        using IExecutorService executor = Executors.NewSingleThreadExecutor();
 
-        var pool = Assert.IsType<ThreadPoolExecutor>(executor);
+        ThreadPoolExecutor pool = Assert.IsType<ThreadPoolExecutor>(executor);
         Assert.Equal(1, pool.ThreadCount);
     }
 
     [Fact]
     public async Task NewSingleThreadExecutor_RunsTasksSequentially()
     {
-        using var executor = Executors.NewSingleThreadExecutor();
-        var order = new List<int>();
+        using IExecutorService executor = Executors.NewSingleThreadExecutor();
+        List<int> order = new();
 
-        var tasks = Enumerable.Range(0, 50).Select(i => executor.Submit(() =>
+        IEnumerable<Task> tasks = Enumerable.Range(0, 50).Select(i => executor.Submit(() =>
         {
             lock (order)
             {

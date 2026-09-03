@@ -19,15 +19,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="../../README.md" Pack="true" PackagePath="/" />
+    <None Include="../../README.md" Pack="true" PackagePath="/"/>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MinVer" PrivateAssets="all" />
+    <PackageReference Include="MinVer" PrivateAssets="all"/>
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="ExecutorService.Tests" />
+    <InternalsVisibleTo Include="ExecutorService.Tests"/>
   </ItemGroup>
 
 </Project>
