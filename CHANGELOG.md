@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-03
+
 ### Added
 
 - `IExecutor` and `IExecutorService` abstractions mirroring `java.util.concurrent`.
@@ -23,4 +25,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ThreadPoolExecutor.ShutdownNow` and `QueuedCount` threw `ObjectDisposedException` when called after the
   executor had terminated (or while the last worker was exiting), because the worker disposed the queue.
 
-[Unreleased]: https://github.com/arielsrv/dotnet-executor-service/compare/main...HEAD
+[Unreleased]: https://github.com/arielsrv/dotnet-executor-service/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.2.0

@@ -187,15 +187,7 @@ public sealed class ThreadPoolExecutor : IExecutorService
     private bool IsWorkerThread()
     {
         Thread current = Thread.CurrentThread;
-        foreach (Thread worker in _workers)
-        {
-            if (ReferenceEquals(worker, current))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return _workers.Any(worker => ReferenceEquals(worker, current));
     }
 
     /// <summary>

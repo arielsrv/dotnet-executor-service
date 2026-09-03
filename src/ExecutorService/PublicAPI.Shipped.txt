@@ -1,0 +1,50 @@
+#nullable enable
+ExecutorService.Executors
+ExecutorService.IExecutor
+ExecutorService.IExecutor.Execute(System.Action! command) -> void
+ExecutorService.IExecutorService
+ExecutorService.IExecutorService.AwaitTermination(System.TimeSpan timeout) -> bool
+ExecutorService.IExecutorService.AwaitTerminationAsync(System.TimeSpan timeout, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<bool>!
+ExecutorService.IExecutorService.IsShutdown.get -> bool
+ExecutorService.IExecutorService.IsTerminated.get -> bool
+ExecutorService.IExecutorService.Shutdown() -> void
+ExecutorService.IExecutorService.ShutdownNow() -> System.Collections.Generic.IReadOnlyList<System.Threading.Tasks.Task!>!
+ExecutorService.IExecutorService.Submit(System.Action! task) -> System.Threading.Tasks.Task!
+ExecutorService.IExecutorService.Submit<TResult>(System.Func<TResult>! task) -> System.Threading.Tasks.Task<TResult>!
+ExecutorService.RejectedExecutionException
+ExecutorService.RejectedExecutionException.RejectedExecutionException() -> void
+ExecutorService.RejectedExecutionException.RejectedExecutionException(string! message) -> void
+ExecutorService.RejectedExecutionException.RejectedExecutionException(string! message, System.Exception? innerException) -> void
+ExecutorService.ThreadPoolExecutor
+ExecutorService.ThreadPoolExecutor.AwaitTermination(System.TimeSpan timeout) -> bool
+ExecutorService.ThreadPoolExecutor.AwaitTerminationAsync(System.TimeSpan timeout, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<bool>!
+ExecutorService.ThreadPoolExecutor.Dispose() -> void
+ExecutorService.ThreadPoolExecutor.DisposeAsync() -> System.Threading.Tasks.ValueTask
+ExecutorService.ThreadPoolExecutor.Execute(System.Action! command) -> void
+ExecutorService.ThreadPoolExecutor.IsShutdown.get -> bool
+ExecutorService.ThreadPoolExecutor.IsTerminated.get -> bool
+ExecutorService.ThreadPoolExecutor.QueuedCount.get -> int
+ExecutorService.ThreadPoolExecutor.Shutdown() -> void
+ExecutorService.ThreadPoolExecutor.ShutdownNow() -> System.Collections.Generic.IReadOnlyList<System.Threading.Tasks.Task!>!
+ExecutorService.ThreadPoolExecutor.Submit(System.Action! task) -> System.Threading.Tasks.Task!
+ExecutorService.ThreadPoolExecutor.Submit<TResult>(System.Func<TResult>! task) -> System.Threading.Tasks.Task<TResult>!
+ExecutorService.ThreadPoolExecutor.Termination.get -> System.Threading.Tasks.Task!
+ExecutorService.ThreadPoolExecutor.ThreadCount.get -> int
+ExecutorService.ThreadPoolExecutor.ThreadPoolExecutor(int threadCount, ExecutorService.ThreadPoolExecutorOptions? options = null) -> void
+ExecutorService.ThreadPoolExecutorOptions
+ExecutorService.ThreadPoolExecutorOptions.<Clone>$() -> ExecutorService.ThreadPoolExecutorOptions!
+ExecutorService.ThreadPoolExecutorOptions.Equals(ExecutorService.ThreadPoolExecutorOptions? other) -> bool
+ExecutorService.ThreadPoolExecutorOptions.IsBackground.get -> bool
+ExecutorService.ThreadPoolExecutorOptions.IsBackground.init -> void
+ExecutorService.ThreadPoolExecutorOptions.Priority.get -> System.Threading.ThreadPriority
+ExecutorService.ThreadPoolExecutorOptions.Priority.init -> void
+ExecutorService.ThreadPoolExecutorOptions.ThreadNamePrefix.get -> string!
+ExecutorService.ThreadPoolExecutorOptions.ThreadNamePrefix.init -> void
+ExecutorService.ThreadPoolExecutorOptions.ThreadPoolExecutorOptions() -> void
+override ExecutorService.ThreadPoolExecutorOptions.Equals(object? obj) -> bool
+override ExecutorService.ThreadPoolExecutorOptions.GetHashCode() -> int
+override ExecutorService.ThreadPoolExecutorOptions.ToString() -> string!
+static ExecutorService.Executors.NewFixedThreadPool(int threadCount, ExecutorService.ThreadPoolExecutorOptions? options = null) -> ExecutorService.IExecutorService!
+static ExecutorService.Executors.NewSingleThreadExecutor(ExecutorService.ThreadPoolExecutorOptions? options = null) -> ExecutorService.IExecutorService!
+static ExecutorService.ThreadPoolExecutorOptions.operator !=(ExecutorService.ThreadPoolExecutorOptions? left, ExecutorService.ThreadPoolExecutorOptions? right) -> bool
+static ExecutorService.ThreadPoolExecutorOptions.operator ==(ExecutorService.ThreadPoolExecutorOptions? left, ExecutorService.ThreadPoolExecutorOptions? right) -> bool
