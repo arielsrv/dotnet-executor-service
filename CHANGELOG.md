@@ -16,5 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `RejectedExecutionException`, thrown when submitting after shutdown.
 - Lifecycle: `Shutdown`, `ShutdownNow`, `AwaitTermination`, `AwaitTerminationAsync`, `IsShutdown`, `IsTerminated`.
 - `IDisposable` / `IAsyncDisposable` semantics equivalent to Java's `close()`.
+- `Taskfile.yml` with build, test, coverage (100% gate), format and pack commands.
+
+### Fixed
+
+- `ThreadPoolExecutor.ShutdownNow` and `QueuedCount` threw `ObjectDisposedException` when called after the
+  executor had terminated (or while the last worker was exiting), because the worker disposed the queue.
 
 [Unreleased]: https://github.com/arielsrv/dotnet-executor-service/compare/main...HEAD

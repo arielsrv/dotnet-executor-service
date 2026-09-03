@@ -46,6 +46,17 @@ jobs:
       - name: Test
         run: dotnet test --solution ExecutorService.slnx --configuration Release --no-build
 
+      - name: Coverage gate (100% line and branch)
+        if: runner.os == 'Linux'
+        run: |
+          dotnet test --solution ExecutorService.slnx --configuration Release --no-build -- \
+            --coverage --coverage-output-format cobertura \
+            --coverage-output coverage.cobertura.xml --results-directory TestResults
+          line=$(sed -n 's/.*<coverage [^>]*line-rate="\([0-9.]*\)".*/\1/p' TestResults/coverage.cobertura.xml | head -1)
+          branch=$(sed -n 's/.*<coverage [^>]*branch-rate="\([0-9.]*\)".*/\1/p' TestResults/coverage.cobertura.xml | head -1)
+          echo "line-rate=$line branch-rate=$branch"
+          test "$line" = "1" && test "$branch" = "1"
+
       - name: Pack
         if: runner.os == 'Linux'
         run: dotnet pack src/ExecutorService/ExecutorService.csproj --configuration Release --no-build --output artifacts/

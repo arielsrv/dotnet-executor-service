@@ -25,6 +25,18 @@ Formatting is enforced by `.editorconfig` and analyzers run with warnings as err
 dotnet format --verify-no-changes
 ```
 
+If you have [Task](https://taskfile.dev) installed, `Taskfile.yml` wraps the common commands.
+Run `task` to list them; the most useful are:
+
+```shell
+task test                 # run the suite (extra args after --, e.g. task test -- --filter-method "*Shutdown*")
+task test:stress N=20     # run the suite repeatedly to catch flaky concurrency tests
+task coverage:check       # tests + HTML report in TestResults/coverage, fails below 100% line/branch coverage
+task ci                   # everything CI runs: format check, Release build, tests, coverage gate, pack
+```
+
+The project keeps 100% line and branch coverage. New code needs tests that keep it there.
+
 ## Pull requests
 
 1. Fork and create a branch from `main` (`feat/...`, `fix/...`, `docs/...`).
@@ -32,7 +44,7 @@ dotnet format --verify-no-changes
 3. Add or update tests. Concurrency code without tests will not be merged.
 4. Public API changes need XML documentation and an entry under `[Unreleased]` in `CHANGELOG.md`.
 5. Use [Conventional Commits](https://www.conventionalcommits.org/) for commit messages (`feat:`, `fix:`, `docs:`, `test:`, `chore:`).
-6. Make sure `dotnet build` and `dotnet test` pass locally before opening the PR.
+6. Make sure `task ci` (or `dotnet build`, `dotnet test` and the coverage gate) passes locally before opening the PR.
 
 ## Design guidelines
 
