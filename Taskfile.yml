@@ -84,7 +84,9 @@ tasks:
 
   coverage:check:
     desc: Fail unless line and branch coverage reach COVERAGE_THRESHOLD (default 100)
-    deps: [coverage]
+    deps:
+      - task: coverage
+        vars: { CONFIGURATION: '{{.CONFIGURATION}}' }
     silent: true
     cmds:
       - |
@@ -98,7 +100,9 @@ tasks:
 
   coverage:open:
     desc: Open the HTML coverage report in the browser
-    deps: [coverage]
+    deps:
+      - task: coverage
+        vars: { CONFIGURATION: '{{.CONFIGURATION}}' }
     cmds:
       - '{{if eq OS "darwin"}}open{{else if eq OS "windows"}}start{{else}}xdg-open{{end}} {{.COVERAGE_REPORT_DIR}}/index.html'
 
