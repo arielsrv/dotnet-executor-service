@@ -12,7 +12,7 @@ public sealed class ExecutionContextFlowTests
     [Fact]
     public async Task Submit_FlowsAmbientContextFromTheSubmitter()
     {
-        using ThreadPoolExecutor executor = new(1);
+        await using ThreadPoolExecutor executor = new(1);
 
         // Set *after* construction: worker threads must not serve the context they were started with.
         Ambient.Value = "set-after-construction";
@@ -25,7 +25,7 @@ public sealed class ExecutionContextFlowTests
     [Fact]
     public async Task Submit_FlowsTheContextOfEachSubmissionIndependently()
     {
-        using ThreadPoolExecutor executor = new(1);
+        await using ThreadPoolExecutor executor = new(1);
 
         Ambient.Value = "first";
         Task<string?> first = executor.Submit<string?>(() => Ambient.Value);
@@ -40,7 +40,7 @@ public sealed class ExecutionContextFlowTests
     public async Task Submit_HonoursSuppressedFlowAndNeverServesTheConstructorContext()
     {
         Ambient.Value = "context-at-construction";
-        using ThreadPoolExecutor executor = new(1);
+        await using ThreadPoolExecutor executor = new(1);
 
         Task<string?> task;
         using (ExecutionContext.SuppressFlow())
@@ -56,17 +56,15 @@ public sealed class ExecutionContextFlowTests
     public async Task Submit_ParentsActivitiesStartedInsideTheTask()
     {
         using ActivitySource source = new(nameof(Submit_ParentsActivitiesStartedInsideTheTask));
-        using ActivityListener listener = new()
-        {
-            ShouldListenTo = s => s.Name == source.Name,
-            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllData
-        };
+        using ActivityListener listener = new();
+        listener.ShouldListenTo = s => s.Name == source.Name;
+        listener.Sample = (ref _) => ActivitySamplingResult.AllData;
         ActivitySource.AddActivityListener(listener);
-        using ThreadPoolExecutor executor = new(1);
+        await using ThreadPoolExecutor executor = new(1);
 
         using Activity? parent = source.StartActivity("parent");
         string? childParentId = await executor
-            .Submit<string?>(() =>
+            .Submit(() =>
             {
                 using Activity? child = source.StartActivity("child");
                 return child?.ParentId;
@@ -80,7 +78,7 @@ public sealed class ExecutionContextFlowTests
     [Fact]
     public async Task Execute_FlowsAmbientContextFromTheSubmitter()
     {
-        using ThreadPoolExecutor executor = new(1);
+        await using ThreadPoolExecutor executor = new(1);
         using ManualResetEventSlim done = new();
         string? seen = null;
 
