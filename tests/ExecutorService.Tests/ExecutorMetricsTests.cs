@@ -95,8 +95,8 @@ public sealed class ExecutorMetricsTests
     [Fact]
     public async Task Metrics_UseOwnMeterWhenNoneSuppliedAndDisposeItOnTermination()
     {
-        using Collector collector = new(ThreadPoolExecutor.MeterName);
-        ThreadPoolExecutor executor = new(1, new ThreadPoolExecutorOptions { ThreadNamePrefix = "owned" });
+        using Collector collector = new(ThreadPoolExecutor.MeterName, "owned-meter");
+        ThreadPoolExecutor executor = new(1, new ThreadPoolExecutorOptions { ThreadNamePrefix = "owned-meter" });
 
         await executor.Submit(() => { }).WaitAsync(Timeout, Ct);
 
@@ -132,24 +132,33 @@ public sealed class ExecutorMetricsTests
     /// <summary>Captures every measurement published by one meter, mirroring what an exporter would see.</summary>
     private sealed class Collector : IDisposable
     {
+        private readonly Func<Measured, bool> _accept;
         private readonly Lock _gate = new();
         private readonly MeterListener _listener = new();
         private readonly List<Measured> _measurements = [];
 
-        public Collector(Meter meter) : this(instrument => ReferenceEquals(instrument.Meter, meter))
+        /// <summary>Listens to one meter instance, which no other test shares.</summary>
+        public Collector(Meter meter) : this(instrument => ReferenceEquals(instrument.Meter, meter), _ => true)
         {
         }
 
-        public Collector(string meterName) : this(instrument =>
-            string.Equals(instrument.Meter.Name, meterName, StringComparison.Ordinal))
+        /// <summary>
+        ///     Listens to a meter by name — the default meter every executor in the process publishes to — so
+        ///     measurements must also be narrowed to one executor by its <c>executor.name</c> tag, otherwise
+        ///     tests running in parallel contaminate each other.
+        /// </summary>
+        public Collector(string meterName, string executorName) : this(
+            instrument => string.Equals(instrument.Meter.Name, meterName, StringComparison.Ordinal),
+            measured => Equals(measured.Tags.GetValueOrDefault("executor.name"), executorName))
         {
         }
 
-        private Collector(Func<Instrument, bool> filter)
+        private Collector(Func<Instrument, bool> published, Func<Measured, bool> accept)
         {
+            _accept = accept;
             _listener.InstrumentPublished = (instrument, listener) =>
             {
-                if (filter(instrument))
+                if (published(instrument))
                 {
                     listener.EnableMeasurementEvents(instrument);
                 }
@@ -212,7 +221,10 @@ public sealed class ExecutorMetricsTests
         {
             lock (_gate)
             {
-                return _measurements.Where(m => string.Equals(m.Name, name, StringComparison.Ordinal)).ToList();
+                return _measurements
+                    .Where(m => string.Equals(m.Name, name, StringComparison.Ordinal))
+                    .Where(_accept)
+                    .ToList();
             }
         }
 
