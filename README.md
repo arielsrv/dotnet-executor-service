@@ -7,7 +7,7 @@
 
 A .NET port of Java's [
 `java.util.concurrent.ExecutorService`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/ExecutorService.html):
-bounded executors backed by **dedicated threads**, an explicit **lifecycle** (`Shutdown`, `ShutdownNow`,
+fixed-size pools of **dedicated threads**, an explicit **lifecycle** (`Shutdown`, `ShutdownNow`,
 `AwaitTermination`), and `Task`-based futures.
 
 ## Why?
@@ -26,7 +26,7 @@ you want what Java developers reach for with `Executors.newFixedThreadPool(n)`:
 dotnet add package ExecutorService
 ```
 
-Requires .NET 10 or later.
+Targets **.NET 8** and **.NET 10**, with no dependencies on either.
 
 ## Quick start
 

@@ -17,6 +17,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   execution time. Wire them up with `AddMeter(ThreadPoolExecutor.MeterName)`.
 - `ThreadPoolExecutorOptions.Meter`, to publish metrics to a caller-supplied `Meter` (for example one from
   `IMeterFactory`) instead of the one the executor creates and owns.
+- A package icon.
+
+### Changed
+
+- The package now targets **net8.0** as well as net10.0. No source changes were needed: nothing in the library
+  depends on APIs newer than .NET 8. The test suite runs against both targets; the coverage gate measures
+  net10.0 only, since test completeness does not differ per target framework.
+- Corrected the package description, which called the executors "bounded" although the queue is unbounded.
+  Only the thread count is fixed.
 
 ## [0.2.0] - 2026-09-03
 

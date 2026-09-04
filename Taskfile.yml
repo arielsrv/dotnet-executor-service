@@ -7,6 +7,9 @@ vars:
   TEST_PROJECT: tests/ExecutorService.Tests/ExecutorService.Tests.csproj
   CONFIGURATION: '{{.CONFIGURATION | default "Debug"}}'
   RESULTS_DIR: TestResults
+  # Coverage is measured on one target framework: the gate enforces test completeness, which does not
+  # differ per TFM, and two runs would overwrite each other's cobertura file.
+  COVERAGE_FRAMEWORK: net10.0
   COVERAGE_FILE: '{{.RESULTS_DIR}}/coverage.cobertura.xml'
   COVERAGE_REPORT_DIR: '{{.RESULTS_DIR}}/coverage'
   COVERAGE_THRESHOLD: '{{.COVERAGE_THRESHOLD | default "100"}}'
@@ -71,6 +74,7 @@ tasks:
       - rm -rf {{.RESULTS_DIR}}
       - >-
         dotnet test --solution {{.SOLUTION}} --configuration {{.CONFIGURATION}}
+        --framework {{.COVERAGE_FRAMEWORK}}
         --results-directory {{.RESULTS_DIR}} --
         --coverage
         --coverage-output-format cobertura
