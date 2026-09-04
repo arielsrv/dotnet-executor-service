@@ -1,6 +1,1 @@
 #nullable enable
-ExecutorService.IExecutorService.ShutdownToken.get -> System.Threading.CancellationToken
-ExecutorService.ThreadPoolExecutor.ShutdownToken.get -> System.Threading.CancellationToken
-ExecutorService.ThreadPoolExecutorOptions.Meter.get -> System.Diagnostics.Metrics.Meter?
-ExecutorService.ThreadPoolExecutorOptions.Meter.init -> void
-const ExecutorService.ThreadPoolExecutor.MeterName = "ExecutorService" -> string!

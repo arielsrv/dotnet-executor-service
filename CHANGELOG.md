@@ -7,11 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-09-04
+
 ### Added
 
-- `IExecutorService.ShutdownToken`, canceled by `ShutdownNow` so tasks already running can stop
-  cooperatively. `Shutdown` never cancels it. Throwing `OperationCanceledException` from a task
-  (e.g. via `ThrowIfCancellationRequested`) transitions its `Task` to `Canceled`.
 - Metrics published through `System.Diagnostics.Metrics` (the in-box OpenTelemetry API, no new dependency):
   queue depth, thread count, submitted / completed / rejected counters, and histograms for queue latency and
   execution time. Wire them up with `AddMeter(ThreadPoolExecutor.MeterName)`.
@@ -26,6 +25,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   net10.0 only, since test completeness does not differ per target framework.
 - Corrected the package description, which called the executors "bounded" although the queue is unbounded.
   Only the thread count is fixed.
+
+## [0.4.0] - 2026-09-03
+
+### Added
+
+- `IExecutorService.ShutdownToken`, canceled by `ShutdownNow` so tasks already running can stop
+  cooperatively. `Shutdown` never cancels it. Throwing `OperationCanceledException` from a task
+  (e.g. via `ThrowIfCancellationRequested`) transitions its `Task` to `Canceled`.
+
+## [0.3.0] - 2026-09-03
+
+### Fixed
+
+- `task ci` measured coverage in Debug while building and testing in Release: Task does not pass a task's
+  vars down to its dependencies, so the `coverage` dependency fell back to the default configuration.
 
 ## [0.2.0] - 2026-09-03
 
@@ -45,5 +59,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ThreadPoolExecutor.ShutdownNow` and `QueuedCount` threw `ObjectDisposedException` when called after the
   executor had terminated (or while the last worker was exiting), because the worker disposed the queue.
 
-[Unreleased]: https://github.com/arielsrv/dotnet-executor-service/compare/v0.2.0...HEAD
+## [0.0.3] - 2026-09-03
+
+Released out of order: this version is numbered below 0.2.0 but contains later code. Use 0.3.0 or newer.
+
+### Added
+
+- `Microsoft.CodeAnalysis.PublicApiAnalyzers` wired up, with the public surface recorded in
+  `PublicAPI.Shipped.txt`, so accidental API changes break the build.
+
+### Changed
+
+- `ThreadPoolExecutor.IsWorkerThread` no longer allocates while checking the current thread.
+
+[Unreleased]: https://github.com/arielsrv/dotnet-executor-service/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.5.0
+[0.4.0]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.4.0
+[0.3.0]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.3.0
 [0.2.0]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.2.0
+[0.0.3]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.0.3

@@ -9,6 +9,7 @@ ExecutorService.IExecutorService.IsShutdown.get -> bool
 ExecutorService.IExecutorService.IsTerminated.get -> bool
 ExecutorService.IExecutorService.Shutdown() -> void
 ExecutorService.IExecutorService.ShutdownNow() -> System.Collections.Generic.IReadOnlyList<System.Threading.Tasks.Task!>!
+ExecutorService.IExecutorService.ShutdownToken.get -> System.Threading.CancellationToken
 ExecutorService.IExecutorService.Submit(System.Action! task) -> System.Threading.Tasks.Task!
 ExecutorService.IExecutorService.Submit<TResult>(System.Func<TResult>! task) -> System.Threading.Tasks.Task<TResult>!
 ExecutorService.RejectedExecutionException
@@ -26,6 +27,7 @@ ExecutorService.ThreadPoolExecutor.IsTerminated.get -> bool
 ExecutorService.ThreadPoolExecutor.QueuedCount.get -> int
 ExecutorService.ThreadPoolExecutor.Shutdown() -> void
 ExecutorService.ThreadPoolExecutor.ShutdownNow() -> System.Collections.Generic.IReadOnlyList<System.Threading.Tasks.Task!>!
+ExecutorService.ThreadPoolExecutor.ShutdownToken.get -> System.Threading.CancellationToken
 ExecutorService.ThreadPoolExecutor.Submit(System.Action! task) -> System.Threading.Tasks.Task!
 ExecutorService.ThreadPoolExecutor.Submit<TResult>(System.Func<TResult>! task) -> System.Threading.Tasks.Task<TResult>!
 ExecutorService.ThreadPoolExecutor.Termination.get -> System.Threading.Tasks.Task!
@@ -36,11 +38,14 @@ ExecutorService.ThreadPoolExecutorOptions.<Clone>$() -> ExecutorService.ThreadPo
 ExecutorService.ThreadPoolExecutorOptions.Equals(ExecutorService.ThreadPoolExecutorOptions? other) -> bool
 ExecutorService.ThreadPoolExecutorOptions.IsBackground.get -> bool
 ExecutorService.ThreadPoolExecutorOptions.IsBackground.init -> void
+ExecutorService.ThreadPoolExecutorOptions.Meter.get -> System.Diagnostics.Metrics.Meter?
+ExecutorService.ThreadPoolExecutorOptions.Meter.init -> void
 ExecutorService.ThreadPoolExecutorOptions.Priority.get -> System.Threading.ThreadPriority
 ExecutorService.ThreadPoolExecutorOptions.Priority.init -> void
 ExecutorService.ThreadPoolExecutorOptions.ThreadNamePrefix.get -> string!
 ExecutorService.ThreadPoolExecutorOptions.ThreadNamePrefix.init -> void
 ExecutorService.ThreadPoolExecutorOptions.ThreadPoolExecutorOptions() -> void
+const ExecutorService.ThreadPoolExecutor.MeterName = "ExecutorService" -> string!
 override ExecutorService.ThreadPoolExecutorOptions.Equals(object? obj) -> bool
 override ExecutorService.ThreadPoolExecutorOptions.GetHashCode() -> int
 override ExecutorService.ThreadPoolExecutorOptions.ToString() -> string!
