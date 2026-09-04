@@ -1,3 +1,5 @@
+using System.Diagnostics.Metrics;
+
 namespace ExecutorService;
 
 /// <summary>
@@ -21,4 +23,11 @@ public sealed record ThreadPoolExecutorOptions
     ///     Gets the scheduling priority of worker threads. Defaults to <see cref="ThreadPriority.Normal" />.
     /// </summary>
     public ThreadPriority Priority { get; init; } = ThreadPriority.Normal;
+
+    /// <summary>
+    ///     Gets the <see cref="Meter" /> the executor publishes metrics to, or <see langword="null" /> to let
+    ///     it create and own one named <see cref="ThreadPoolExecutor.MeterName" />. Supply a meter obtained
+    ///     from <c>IMeterFactory</c> to scope metrics to a dependency injection container.
+    /// </summary>
+    public Meter? Meter { get; init; }
 }

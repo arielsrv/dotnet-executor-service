@@ -57,8 +57,24 @@ IReadOnlyList<Task> neverStarted = executor.ShutdownNow();
 // each Task in `neverStarted` is in the Canceled state
 ```
 
-Tasks that are already running are **not** interrupted. .NET has no thread interruption; implement cooperative
-cancellation inside your task if you need it.
+Tasks that are already running are **not** interrupted, because .NET has no thread interruption. They can stop
+cooperatively by observing `ShutdownToken`, which `ShutdownNow()` cancels:
+
+```csharp
+var executor = Executors.NewFixedThreadPool(4);
+
+executor.Submit(() =>
+{
+    while (!executor.ShutdownToken.IsCancellationRequested)
+    {
+        ProcessNextBatch();
+    }
+
+    executor.ShutdownToken.ThrowIfCancellationRequested();   // the Task ends up Canceled
+});
+```
+
+The graceful `Shutdown()` never cancels that token: queued tasks are allowed to finish.
 
 ### Configuring worker threads
 
@@ -70,6 +86,51 @@ var executor = Executors.NewFixedThreadPool(2, new ThreadPoolExecutorOptions
     Priority = ThreadPriority.BelowNormal,
 });
 ```
+
+## Metrics
+
+The executor publishes metrics through `System.Diagnostics.Metrics`, the in-box OpenTelemetry metrics API.
+**No extra package reference is needed** — and none is imposed on you: this library takes no dependency on any
+telemetry SDK, so your application picks the exporter.
+
+```csharp
+builder.Services.AddOpenTelemetry()
+    .WithMetrics(metrics => metrics.AddMeter(ThreadPoolExecutor.MeterName));
+```
+
+That is all it takes to reach Prometheus / Grafana, Azure Monitor, or any OTLP backend such as New Relic,
+Datadog or Honeycomb. To look without any pipeline at all:
+
+```shell
+dotnet-counters monitor --process-id <pid> --counters ExecutorService
+```
+
+| Instrument                          | Kind      | Unit       | Meaning                                        |
+|-------------------------------------|-----------|------------|------------------------------------------------|
+| `executor.tasks.queued`             | Gauge     | `{task}`   | Tasks waiting to be executed                   |
+| `executor.threads`                  | Gauge     | `{thread}` | Worker threads owned by the executor           |
+| `executor.tasks.submitted`          | Counter   | `{task}`   | Tasks accepted for execution                   |
+| `executor.tasks.completed`          | Counter   | `{task}`   | Terminal tasks, tagged by outcome              |
+| `executor.tasks.rejected`           | Counter   | `{task}`   | Submissions refused after shutdown             |
+| `executor.task.queue.duration`      | Histogram | `s`        | Time a task waited in the queue before starting |
+| `executor.task.execution.duration`  | Histogram | `s`        | Time a task spent executing                    |
+
+Every measurement carries an `executor.name` tag, taken from `ThreadNamePrefix`, so several executors in one
+process stay apart. `executor.tasks.completed` adds `executor.task.status` with `success`, `faulted` or
+`canceled`.
+
+Watch `executor.task.queue.duration` above all: a fixed pool over an unbounded queue absorbs overload silently,
+and queue latency is what tells you the pool is undersized before anything downstream times out.
+
+Histograms are only timestamped while something is listening, so the cost of leaving metrics unobserved is one
+boolean read per task. To scope metrics to a dependency injection container, hand the executor a meter of your
+own:
+
+```csharp
+new ThreadPoolExecutorOptions { Meter = meterFactory.Create(ThreadPoolExecutor.MeterName) }
+```
+
+A supplied meter is never disposed by the executor; the one it creates for itself is released when it terminates.
 
 ## Java to .NET mapping
 
@@ -93,7 +154,7 @@ var executor = Executors.NewFixedThreadPool(2, new ThreadPoolExecutorOptions
 See [CHANGELOG.md](CHANGELOG.md) for released features. Planned:
 
 - `InvokeAll` / `InvokeAny`
-- Cancellation-aware overloads (`Func<CancellationToken, T>`) and `ShutdownNow` propagating a token
+- Cancellation-aware overloads (`Action<CancellationToken>`, `Func<CancellationToken, T>`)
 - Async task overloads (`Func<Task>`, `Func<Task<T>>`)
 - Bounded queues with rejection policies (`Abort`, `CallerRuns`, `Discard`, `DiscardOldest`)
 - `Executors.NewCachedThreadPool()` with core / max pool size and keep-alive

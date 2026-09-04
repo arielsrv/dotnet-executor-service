@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
 
 using ExecutorService.Internal;
 
@@ -26,6 +28,13 @@ public sealed class ThreadPoolExecutor : IExecutorService
     private const int ShuttingDown = 1;
     private const int Stopped = 2;
 
+    /// <summary>
+    ///     The name of the <see cref="Meter" /> this executor publishes to. Pass it to your telemetry
+    ///     pipeline, for example <c>AddMeter(ThreadPoolExecutor.MeterName)</c>.
+    /// </summary>
+    public const string MeterName = "ExecutorService";
+
+    private readonly ExecutorMetrics _metrics;
     private readonly BlockingCollection<WorkItem> _queue = new(new ConcurrentQueue<WorkItem>());
 
     // Intentionally never disposed, for the same reason as the queue: ShutdownToken stays observable
@@ -50,6 +59,7 @@ public sealed class ThreadPoolExecutor : IExecutorService
 
         _workers = new Thread[threadCount];
         _liveWorkers = threadCount;
+        _metrics = new ExecutorMetrics(options.ThreadNamePrefix, options.Meter, () => QueuedCount, () => ThreadCount);
 
         for (int i = 0; i < threadCount; i++)
         {
@@ -133,6 +143,7 @@ public sealed class ThreadPoolExecutor : IExecutorService
         while (_queue.TryTake(out WorkItem? item))
         {
             item.Cancel();
+            _metrics.TaskCompleted(item.Task.Status);
             pending.Add(item.Task);
         }
 
@@ -184,6 +195,11 @@ public sealed class ThreadPoolExecutor : IExecutorService
 
     private void Enqueue(WorkItem item)
     {
+        if (_metrics.QueueDurationEnabled)
+        {
+            item.EnqueuedTimestamp = Stopwatch.GetTimestamp();
+        }
+
         // The queue's completed state is the single source of truth for rejection: both Shutdown and
         // ShutdownNow complete it, and BlockingCollection.Add is atomic with respect to CompleteAdding.
         try
@@ -192,8 +208,11 @@ public sealed class ThreadPoolExecutor : IExecutorService
         }
         catch (InvalidOperationException ex)
         {
+            _metrics.TaskRejected();
             throw new RejectedExecutionException("Task rejected: the executor has been shut down.", ex);
         }
+
+        _metrics.TaskSubmitted();
     }
 
     private bool IsWorkerThread()
@@ -208,13 +227,26 @@ public sealed class ThreadPoolExecutor : IExecutorService
     /// </summary>
     internal void Dispatch(WorkItem item)
     {
+        if (item.EnqueuedTimestamp is { } enqueued)
+        {
+            _metrics.RecordQueueDuration(Stopwatch.GetElapsedTime(enqueued));
+        }
+
         if (Volatile.Read(ref _state) == Stopped)
         {
             item.Cancel();
+            _metrics.TaskCompleted(item.Task.Status);
             return;
         }
 
+        long? started = _metrics.ExecutionDurationEnabled ? Stopwatch.GetTimestamp() : null;
         item.Run();
+        if (started is { } start)
+        {
+            _metrics.RecordExecutionDuration(Stopwatch.GetElapsedTime(start));
+        }
+
+        _metrics.TaskCompleted(item.Task.Status);
     }
 
     private void WorkerLoop()
@@ -232,6 +264,9 @@ public sealed class ThreadPoolExecutor : IExecutorService
             // after termination, and BlockingCollection holds no OS handles unless a WaitHandle is requested.
             if (Interlocked.Decrement(ref _liveWorkers) == 0)
             {
+                // Disposing the meter unregisters the observable gauges, so this terminated executor
+                // is not kept alive by their callbacks. Shutdown alone never reaches Dispose().
+                _metrics.Dispose();
                 _terminated.TrySetResult();
             }
         }

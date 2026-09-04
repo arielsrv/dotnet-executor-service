@@ -12,7 +12,7 @@
     <IsPackable>true</IsPackable>
     <PackageId>ExecutorService</PackageId>
     <Title>ExecutorService</Title>
-    <Description>A .NET port of Java's java.util.concurrent.ExecutorService: bounded, dedicated-thread task executors with explicit lifecycle (shutdown, shutdownNow, awaitTermination) and Task-based futures.</Description>
+    <Description>A .NET port of Java's java.util.concurrent.ExecutorService: fixed-size pools of dedicated threads with explicit lifecycle (Shutdown, ShutdownNow, AwaitTermination) and Task-based futures.</Description>
     <PackageTags>executor;executorservice;threadpool;concurrency;threading;java;tasks</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageReleaseNotes>See https://github.com/arielsrv/dotnet-executor-service/blob/main/CHANGELOG.md</PackageReleaseNotes>

@@ -8,6 +8,12 @@ internal abstract class WorkItem
     /// <summary>Gets the task that observers await.</summary>
     public abstract Task Task { get; }
 
+    /// <summary>
+    ///     Gets or sets the timestamp taken when the item was enqueued, or <see langword="null" /> when
+    ///     queue latency is not being measured.
+    /// </summary>
+    public long? EnqueuedTimestamp { get; set; }
+
     /// <summary>Runs the work on the calling thread, routing the outcome to <see cref="Task" />. Never throws.</summary>
     public abstract void Run();
 

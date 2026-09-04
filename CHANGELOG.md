@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `IExecutorService.ShutdownToken`, canceled by `ShutdownNow` so tasks already running can stop
   cooperatively. `Shutdown` never cancels it. Throwing `OperationCanceledException` from a task
   (e.g. via `ThrowIfCancellationRequested`) transitions its `Task` to `Canceled`.
+- Metrics published through `System.Diagnostics.Metrics` (the in-box OpenTelemetry API, no new dependency):
+  queue depth, thread count, submitted / completed / rejected counters, and histograms for queue latency and
+  execution time. Wire them up with `AddMeter(ThreadPoolExecutor.MeterName)`.
+- `ThreadPoolExecutorOptions.Meter`, to publish metrics to a caller-supplied `Meter` (for example one from
+  `IMeterFactory`) instead of the one the executor creates and owns.
 
 ## [0.2.0] - 2026-09-03
 
