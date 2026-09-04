@@ -105,7 +105,7 @@ public sealed class ExecutorMetricsTests
         Assert.Equal(1, collector.Last("executor.threads"));
 
         executor.Shutdown();
-        Assert.True(executor.AwaitTermination(Timeout));
+        Assert.True(await executor.AwaitTerminationAsync(Timeout, Ct));
         collector.Clear();
         collector.PullGauges();
 

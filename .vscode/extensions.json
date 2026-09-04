@@ -1,0 +1,26 @@
+{
+  // VS Code offers these to anyone who opens the repository.
+  "recommendations": [
+    // C# language support, build and test integration.
+    "ms-dotnettools.csharp",
+
+    // Honours the repository's .editorconfig, which the build enforces via EnforceCodeStyleInBuild.
+    "editorconfig.editorconfig",
+
+    // Runs the Taskfile.yml targets (build, test, coverage, ci) from the command palette.
+    "task.vscode-task",
+
+    // Schema validation for .github/workflows.
+    "github.vscode-github-actions",
+
+    // YAML schemas for Taskfile.yml and the workflow files.
+    "redhat.vscode-yaml",
+
+    // Lints README.md and CHANGELOG.md.
+    "davidanson.vscode-markdownlint",
+
+    // Shows `task coverage` results inline from TestResults/coverage.cobertura.xml,
+    // which matters here because the build gate demands 100% line and branch coverage.
+    "ryanluker.vscode-coverage-gutters"
+  ]
+}

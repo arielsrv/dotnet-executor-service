@@ -183,7 +183,7 @@ public sealed class ThreadPoolExecutorTests
 
         gate.Set();
         Assert.Equal("queued", await queued.WaitAsync(Timeout, Ct));
-        Assert.True(executor.AwaitTermination(Timeout));
+        Assert.True(await executor.AwaitTerminationAsync(Timeout, Ct));
         Assert.True(executor.IsTerminated);
         await blocker;
     }
