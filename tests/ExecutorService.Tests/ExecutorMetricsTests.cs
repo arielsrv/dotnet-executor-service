@@ -133,7 +133,7 @@ public sealed class ExecutorMetricsTests
     private sealed class Collector : IDisposable
     {
         private readonly Func<Measured, bool> _accept;
-        private readonly Lock _gate = new();
+        private readonly object _gate = new();
         private readonly MeterListener _listener = new();
         private readonly List<Measured> _measurements = [];
 
