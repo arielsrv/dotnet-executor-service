@@ -11,6 +11,8 @@ ExecutorService.IExecutorService.Shutdown() -> void
 ExecutorService.IExecutorService.ShutdownNow() -> System.Collections.Generic.IReadOnlyList<System.Threading.Tasks.Task!>!
 ExecutorService.IExecutorService.ShutdownToken.get -> System.Threading.CancellationToken
 ExecutorService.IExecutorService.Submit(System.Action! task) -> System.Threading.Tasks.Task!
+ExecutorService.IExecutorService.Submit(System.Func<System.Threading.Tasks.Task!>! task) -> System.Threading.Tasks.Task!
+ExecutorService.IExecutorService.Submit<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! task) -> System.Threading.Tasks.Task<TResult>!
 ExecutorService.IExecutorService.Submit<TResult>(System.Func<TResult>! task) -> System.Threading.Tasks.Task<TResult>!
 ExecutorService.RejectedExecutionException
 ExecutorService.RejectedExecutionException.RejectedExecutionException() -> void
@@ -29,6 +31,8 @@ ExecutorService.ThreadPoolExecutor.Shutdown() -> void
 ExecutorService.ThreadPoolExecutor.ShutdownNow() -> System.Collections.Generic.IReadOnlyList<System.Threading.Tasks.Task!>!
 ExecutorService.ThreadPoolExecutor.ShutdownToken.get -> System.Threading.CancellationToken
 ExecutorService.ThreadPoolExecutor.Submit(System.Action! task) -> System.Threading.Tasks.Task!
+ExecutorService.ThreadPoolExecutor.Submit(System.Func<System.Threading.Tasks.Task!>! task) -> System.Threading.Tasks.Task!
+ExecutorService.ThreadPoolExecutor.Submit<TResult>(System.Func<System.Threading.Tasks.Task<TResult>!>! task) -> System.Threading.Tasks.Task<TResult>!
 ExecutorService.ThreadPoolExecutor.Submit<TResult>(System.Func<TResult>! task) -> System.Threading.Tasks.Task<TResult>!
 ExecutorService.ThreadPoolExecutor.Termination.get -> System.Threading.Tasks.Task!
 ExecutorService.ThreadPoolExecutor.ThreadCount.get -> int

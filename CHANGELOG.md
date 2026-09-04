@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-09-04
+
+### Added
+
+- `Submit(Func<Task>)` and `Submit<TResult>(Func<Task<TResult>>)`, for asynchronous work. The returned task
+  completes when the work finishes, and the worker thread stays occupied until then, so `ThreadCount` bounds
+  how many run concurrently.
+
+### Fixed
+
+- Submitting async work used to be a silent trap: `Submit(() => WorkAsync())` bound to
+  `Submit<TResult>(Func<TResult>)` with `TResult` inferred as `Task`, so it returned a `Task<Task>` that
+  completed as soon as the work *started*. The worker was released immediately, so the pool bounded nothing
+  and exceptions surfaced on the inner task nobody awaited. The new overloads now win overload resolution.
+
+### Changed
+
+- Source-breaking in one corner: a throw-only lambda with an explicit type argument, such as
+  `Submit<int>(() => throw new Exception())`, is now ambiguous, because such a lambda has no return type and
+  fits both `Func<int>` and `Func<Task<int>>`. `Task.Run` has the same corner. Give the delegate a type — a
+  local function or a cast — to disambiguate.
+
 ## [0.5.1] - 2026-09-04
 
 ### Fixed
@@ -83,7 +105,8 @@ Released out of order: this version is numbered below 0.2.0 but contains later c
 
 - `ThreadPoolExecutor.IsWorkerThread` no longer allocates while checking the current thread.
 
-[Unreleased]: https://github.com/arielsrv/dotnet-executor-service/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/arielsrv/dotnet-executor-service/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.6.0
 [0.5.1]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.5.1
 [0.5.0]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.5.0
 [0.4.0]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.4.0

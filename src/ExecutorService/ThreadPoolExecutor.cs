@@ -118,6 +118,27 @@ public sealed class ThreadPoolExecutor : IExecutorService
     }
 
     /// <inheritdoc />
+    public Task Submit(Func<Task> task)
+    {
+        ArgumentNullException.ThrowIfNull(task);
+
+        // Blocking the worker is deliberate: it is what makes ThreadCount an upper bound on how many of
+        // these run concurrently. GetResult also unwraps the exception instead of aggregating it.
+        ActionWorkItem item = new(() => task().GetAwaiter().GetResult());
+        Enqueue(item);
+        return item.Task;
+    }
+
+    /// <inheritdoc />
+    public Task<TResult> Submit<TResult>(Func<Task<TResult>> task)
+    {
+        ArgumentNullException.ThrowIfNull(task);
+        FuncWorkItem<TResult> item = new(() => task().GetAwaiter().GetResult());
+        Enqueue(item);
+        return item.TypedTask;
+    }
+
+    /// <inheritdoc />
     public void Shutdown()
     {
         if (Interlocked.CompareExchange(ref _state, ShuttingDown, Running) == Running)

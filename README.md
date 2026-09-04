@@ -50,6 +50,26 @@ bool terminated = executor.AwaitTermination(TimeSpan.FromSeconds(10));
 Disposing the executor is equivalent to Java's `close()`: it calls `Shutdown()` and waits for termination.
 `await using` does the same without blocking.
 
+### Submitting asynchronous work
+
+Pass the `async` delegate directly and the returned task tracks the work, not just its start:
+
+```csharp
+Task<int> future = executor.Submit(async () =>
+{
+    await using var connection = await OpenAsync();
+    return await connection.QueryAsync();
+});
+```
+
+The worker thread stays occupied until that work completes, which is the reason to route async work through
+an executor at all: **the thread count becomes a concurrency limit**. A four-thread pool runs at most four of
+these at a time, no matter how many you submit — useful for rate-limiting calls to a dependency that would
+otherwise be hammered by unbounded `Task.Run`.
+
+Note that `Execute` takes an `Action`, so `executor.Execute(() => WorkAsync())` starts the work and forgets
+it: nothing waits for it and nothing observes its exceptions. Use `Submit` for async work.
+
 ### Dropping pending work
 
 ```csharp
@@ -168,6 +188,7 @@ using (ExecutionContext.SuppressFlow())
 | `execute(Runnable)`                     | `Execute(Action)`                                                                   |
 | `submit(Runnable)` / `submit(Callable)` | `Submit(Action)` / `Submit<T>(Func<T>)`                                             |
 | `Future<T>`                             | `Task<T>`                                                                           |
+| *(no equivalent)*                       | `Submit(Func<Task>)` / `Submit<T>(Func<Task<T>>)`                                   |
 | `shutdown()` / `shutdownNow()`          | `Shutdown()` / `ShutdownNow()`                                                      |
 | `awaitTermination(timeout, unit)`       | `AwaitTermination(TimeSpan)` / `AwaitTerminationAsync(TimeSpan, CancellationToken)` |
 | `isShutdown()` / `isTerminated()`       | `IsShutdown` / `IsTerminated`                                                       |
@@ -180,7 +201,6 @@ See [CHANGELOG.md](CHANGELOG.md) for released features. Planned:
 
 - `InvokeAll` / `InvokeAny`
 - Cancellation-aware overloads (`Action<CancellationToken>`, `Func<CancellationToken, T>`)
-- Async task overloads (`Func<Task>`, `Func<Task<T>>`)
 - Bounded queues with rejection policies (`Abort`, `CallerRuns`, `Discard`, `DiscardOldest`)
 - `Executors.NewCachedThreadPool()` with core / max pool size and keep-alive
 - `IScheduledExecutorService` (`Schedule`, `ScheduleAtFixedRate`, `ScheduleWithFixedDelay`)

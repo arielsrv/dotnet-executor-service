@@ -40,7 +40,9 @@ public sealed class ThreadPoolExecutorTests
     {
         using ThreadPoolExecutor executor = new(1);
 
-        Task<int> task = executor.Submit<int>(() => throw new InvalidOperationException("boom"));
+        static int Boom() => throw new InvalidOperationException("boom");
+
+        Task<int> task = executor.Submit(Boom);
 
         InvalidOperationException ex =
             await Assert.ThrowsAsync<InvalidOperationException>(() => task.WaitAsync(Timeout, Ct));
@@ -63,7 +65,9 @@ public sealed class ThreadPoolExecutorTests
     {
         using ThreadPoolExecutor executor = new(1);
 
-        Task<int> task = executor.Submit<int>(() => throw new OperationCanceledException());
+        static int Cancel() => throw new OperationCanceledException();
+
+        Task<int> task = executor.Submit(Cancel);
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task.WaitAsync(Timeout, Ct));
         Assert.True(task.IsCanceled);

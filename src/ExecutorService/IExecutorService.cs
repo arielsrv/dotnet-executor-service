@@ -96,6 +96,42 @@ public interface IExecutorService : IExecutor, IDisposable, IAsyncDisposable
     Task<TResult> Submit<TResult>(Func<TResult> task);
 
     /// <summary>
+    ///     Submits asynchronous work for execution and returns a <see cref="Task" /> that completes when the
+    ///     work has finished — not when it has merely started.
+    /// </summary>
+    /// <remarks>
+    ///     The worker thread stays occupied until the returned <see cref="Task" /> completes, so the executor's
+    ///     thread count bounds how many of these run at once. That is the point of submitting async work here
+    ///     rather than starting it directly: the pool becomes a concurrency limit.
+    /// </remarks>
+    /// <param name="task">The work to submit.</param>
+    /// <returns>
+    ///     A task that completes when the work finishes, faults with the thrown exception, or is canceled by
+    ///     <see cref="ShutdownNow" />.
+    /// </returns>
+    /// <exception cref="RejectedExecutionException">The task cannot be scheduled for execution.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="task" /> is <see langword="null" />.</exception>
+    Task Submit(Func<Task> task);
+
+    /// <summary>
+    ///     Submits asynchronous, value-returning work and returns a <see cref="Task{TResult}" /> that completes
+    ///     with its result when the work has finished — not when it has merely started.
+    /// </summary>
+    /// <remarks>
+    ///     The worker thread stays occupied until the work completes, so the executor's thread count bounds how
+    ///     many of these run at once.
+    /// </remarks>
+    /// <typeparam name="TResult">The type of the result.</typeparam>
+    /// <param name="task">The work to submit.</param>
+    /// <returns>
+    ///     A task that completes with the result, faults with the thrown exception, or is canceled by
+    ///     <see cref="ShutdownNow" />.
+    /// </returns>
+    /// <exception cref="RejectedExecutionException">The task cannot be scheduled for execution.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="task" /> is <see langword="null" />.</exception>
+    Task<TResult> Submit<TResult>(Func<Task<TResult>> task);
+
+    /// <summary>
     ///     Submits a task for execution and returns a <see cref="Task" /> representing it.
     /// </summary>
     /// <param name="task">The task to submit.</param>
