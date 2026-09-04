@@ -70,7 +70,7 @@ public sealed class ThreadPoolExecutor : IExecutorService
                 Priority = options.Priority
             };
             _workers[i] = worker;
-            worker.Start();
+            worker.UnsafeStart();
         }
     }
 
@@ -195,6 +195,10 @@ public sealed class ThreadPoolExecutor : IExecutorService
 
     private void Enqueue(WorkItem item)
     {
+        // Captured per submission, not once per worker thread: ExecutionContext.Capture returns null
+        // when the caller suppressed flow, which is the standard opt-out.
+        item.Context = ExecutionContext.Capture();
+
         if (_metrics.QueueDurationEnabled)
         {
             item.EnqueuedTimestamp = Stopwatch.GetTimestamp();

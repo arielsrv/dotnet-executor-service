@@ -5,6 +5,8 @@ namespace ExecutorService.Internal;
 /// </summary>
 internal abstract class WorkItem
 {
+    private static readonly ContextCallback InvokeCallback = static state => ((WorkItem)state!).Invoke();
+
     /// <summary>Gets the task that observers await.</summary>
     public abstract Task Task { get; }
 
@@ -14,11 +16,31 @@ internal abstract class WorkItem
     /// </summary>
     public long? EnqueuedTimestamp { get; set; }
 
+    /// <summary>
+    ///     Gets or sets the caller's ambient execution context, captured at submission so that
+    ///     <see cref="AsyncLocal{T}" /> values — <see cref="System.Diagnostics.Activity.Current" /> among
+    ///     them — reach the work the same way they would through <see cref="Task.Run(Action)" />.
+    ///     <see langword="null" /> when the caller suppressed flow.
+    /// </summary>
+    public ExecutionContext? Context { get; set; }
+
     /// <summary>Runs the work on the calling thread, routing the outcome to <see cref="Task" />. Never throws.</summary>
-    public abstract void Run();
+    public void Run()
+    {
+        if (Context is null)
+        {
+            Invoke();
+            return;
+        }
+
+        ExecutionContext.Run(Context, InvokeCallback, this);
+    }
 
     /// <summary>Transitions <see cref="Task" /> to canceled without running the work.</summary>
     public abstract void Cancel();
+
+    /// <summary>Invokes the delegate and routes its outcome to <see cref="Task" />. Never throws.</summary>
+    protected abstract void Invoke();
 }
 
 internal sealed class ActionWorkItem(Action action) : WorkItem
@@ -27,7 +49,7 @@ internal sealed class ActionWorkItem(Action action) : WorkItem
 
     public override Task Task => _completion.Task;
 
-    public override void Run()
+    protected override void Invoke()
     {
         try
         {
@@ -61,7 +83,7 @@ internal sealed class FuncWorkItem<TResult>(Func<TResult> func) : WorkItem
 
     public override Task Task => _completion.Task;
 
-    public override void Run()
+    protected override void Invoke()
     {
         try
         {

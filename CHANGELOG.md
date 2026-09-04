@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-09-04
+
+### Fixed
+
+- Submitted work now runs under the caller's `ExecutionContext`, captured per submission, so `AsyncLocal<T>`
+  values — `Activity.Current` among them — flow into tasks the way they do through `Task.Run`. Previously the
+  worker threads captured the context once, when the executor was constructed, and served that frozen copy to
+  every task: ambient values set after construction never arrived, spans were parented to whatever was current
+  at construction time, and that context's object graph was kept alive for the executor's lifetime. Callers opt
+  out with the standard `ExecutionContext.SuppressFlow()`.
+
 ## [0.5.0] - 2026-09-04
 
 ### Added
@@ -72,7 +83,8 @@ Released out of order: this version is numbered below 0.2.0 but contains later c
 
 - `ThreadPoolExecutor.IsWorkerThread` no longer allocates while checking the current thread.
 
-[Unreleased]: https://github.com/arielsrv/dotnet-executor-service/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/arielsrv/dotnet-executor-service/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.5.1
 [0.5.0]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.5.0
 [0.4.0]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.4.0
 [0.3.0]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.3.0

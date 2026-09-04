@@ -132,6 +132,31 @@ new ThreadPoolExecutorOptions { Meter = meterFactory.Create(ThreadPoolExecutor.M
 
 A supplied meter is never disposed by the executor; the one it creates for itself is released when it terminates.
 
+## Ambient context
+
+Submitted work runs under the caller's `ExecutionContext`, captured per submission, so `AsyncLocal<T>` values
+reach it exactly as they would through `Task.Run`. That includes `Activity.Current`, which means spans started
+inside a task are parented correctly and traces stay connected:
+
+```csharp
+using var parent = source.StartActivity("import");
+executor.Submit(() =>
+{
+    using var child = source.StartActivity("import-row");   // child of "import"
+    ImportRow();
+});
+```
+
+To opt out — the same way you would for any other .NET scheduling primitive — suppress the flow around the
+submission:
+
+```csharp
+using (ExecutionContext.SuppressFlow())
+{
+    executor.Submit(Work);   // runs with a clean context
+}
+```
+
 ## Java to .NET mapping
 
 | Java                                    | ExecutorService (.NET)                                                              |
