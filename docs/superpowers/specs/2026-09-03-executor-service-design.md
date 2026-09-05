@@ -18,7 +18,7 @@ Publish an open-source NuGet package, `ExecutorService`, that ports Java's
 ## Decisions
 
 | Topic | Decision | Reason |
-|---|---|---|
+| --- | --- | --- |
 | Package id / root namespace | `ExecutorService` | Free on nuget.org, mirrors Java, no type named exactly `ExecutorService` so no namespace clash. |
 | Target framework | `net10.0` only | Requested. Multi-targeting `net8.0` is a one-line change later. |
 | Future type | `Task` / `Task<T>` | Idiomatic; composes with `await`, `WhenAll`, `WaitAsync`. |
@@ -36,7 +36,7 @@ Publish an open-source NuGet package, `ExecutorService`, that ports Java's
 
 ## Architecture
 
-```
+```text
 IExecutor                    Execute(Action)
   └─ IExecutorService        Submit, Shutdown, ShutdownNow, AwaitTermination*, IsShutdown, IsTerminated, Dispose*
        └─ ThreadPoolExecutor  fixed N dedicated threads + BlockingCollection<WorkItem>
@@ -51,7 +51,8 @@ Internal/WorkItem            ActionWorkItem, FuncWorkItem<T>: delegate → TaskC
 `Running → ShuttingDown → Stopped`, stored in an `int` with `Interlocked`.
 
 - `Shutdown`: `Running → ShuttingDown`, `CompleteAdding()`. Workers drain the queue then exit.
-- `ShutdownNow`: any → `Stopped`, `CompleteAdding()` if needed, drain queue canceling each item. Workers cancel anything they pick up while `Stopped`.
+- `ShutdownNow`: any → `Stopped`, `CompleteAdding()` if needed, drain queue canceling each item. Workers cancel anything
+  they pick up while `Stopped`.
 - Termination: last worker to exit disposes the queue and completes the `_terminated` TCS.
 - Submit race: state check, then `Add`; an `InvalidOperationException` from a completed queue is translated to `RejectedExecutionException`.
 
