@@ -25,15 +25,20 @@ Each phase ships independently and gets its own CHANGELOG entry. Phase 0 is done
 
 ## Phase 2: complete the ExecutorService surface
 
-1. `InvokeAll<T>(IEnumerable<Func<T>>, TimeSpan? timeout)` returning completed `Task<T>` list; `InvokeAny<T>` returning the first successful result and canceling the rest.
-2. Cancellation-aware overloads: `Submit<T>(Func<CancellationToken, T>)`, `Submit(Action<CancellationToken>)`. `ShutdownNow` cancels the executor-wide token so running tasks can cooperate.
-3. Async overloads: `Submit(Func<Task>)`, `Submit<T>(Func<Task<T>>)`. Decide whether continuations run on the pool thread (custom `SynchronizationContext`) or on the .NET pool; document it.
+1. `InvokeAll<T>(IEnumerable<Func<T>>, TimeSpan? timeout)` returning completed `Task<T>` list; `InvokeAny<T>` returning
+   the first successful result and canceling the rest.
+2. Cancellation-aware overloads: `Submit<T>(Func<CancellationToken, T>)`, `Submit(Action<CancellationToken>)`.
+   `ShutdownNow` cancels the executor-wide token so running tasks can cooperate.
+3. Async overloads: `Submit(Func<Task>)`, `Submit<T>(Func<Task<T>>)`. Decide whether continuations run on the pool
+   thread (custom `SynchronizationContext`) or on the .NET pool; document it.
 4. `UnhandledException` event on `ThreadPoolExecutor` for `Execute` failures (Java's `UncaughtExceptionHandler`).
-5. Public API tracking with `Microsoft.CodeAnalysis.PublicApiAnalyzers` (`PublicAPI.Shipped.txt` / `PublicAPI.Unshipped.txt`), already pinned in `Directory.Packages.props`.
+5. Public API tracking with `Microsoft.CodeAnalysis.PublicApiAnalyzers` (`PublicAPI.Shipped.txt` /
+   `PublicAPI.Unshipped.txt`), already pinned in `Directory.Packages.props`.
 
 ## Phase 3: pool configuration like Java's `ThreadPoolExecutor`
 
-1. Bounded queue (`BlockingCollection` capacity) and `IRejectedExecutionHandler` with `Abort`, `CallerRuns`, `Discard`, `DiscardOldest`.
+1. Bounded queue (`BlockingCollection` capacity) and `IRejectedExecutionHandler` with `Abort`, `CallerRuns`, `Discard`,
+   `DiscardOldest`.
 2. Core / maximum pool size with keep-alive for idle threads; `Executors.NewCachedThreadPool()`.
 3. Metrics: `ActiveCount`, `CompletedTaskCount`, `LargestPoolSize`. Consider `System.Diagnostics.Metrics` counters.
 4. `IThreadFactory` abstraction replacing `ThreadPoolExecutorOptions` if configuration keeps growing.
