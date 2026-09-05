@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-09-05
+
+### Added
+
+- A metrics sample under `samples/ExecutorService.Metrics.Sample`, driving an executor under synthetic load
+  until every instrument has moved — the rejected and canceled paths included. Watch it with the
+  OpenTelemetry console exporter (`task metrics`) or live with `dotnet-counters` (`task metrics:counters`).
+
+### Fixed
+
+- `DisposeAsync` deadlocked when called from one of the executor's own worker threads. `Submit(Func<Task>)`
+  blocks its worker until the returned task completes, so awaiting termination there kept alive the very
+  worker whose exit termination waits for. It now skips the wait on a worker thread, matching `Dispose`.
+
 ## [0.6.0] - 2026-09-04
 
 ### Added
@@ -105,7 +119,8 @@ Released out of order: this version is numbered below 0.2.0 but contains later c
 
 - `ThreadPoolExecutor.IsWorkerThread` no longer allocates while checking the current thread.
 
-[Unreleased]: https://github.com/arielsrv/dotnet-executor-service/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/arielsrv/dotnet-executor-service/compare/v0.6.1...HEAD
+[0.6.1]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.6.1
 [0.6.0]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.6.0
 [0.5.1]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.5.1
 [0.5.0]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.5.0
