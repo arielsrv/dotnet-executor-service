@@ -36,9 +36,12 @@ using (IExecutorService pool = Executors.NewFixedThreadPool(
            threads,
            new ThreadPoolExecutorOptions { ThreadNamePrefix = namePrefix }))
 {
-    Run("Submit hands back the delegate's value", () => ValueRoundTrip(pool));
-    Run("Submit follows async work to completion", () => AsyncRoundTrip(pool));
-    Run($"{threads} dedicated threads, never more at once", () => DedicatedThreads(pool, threads, namePrefix));
+    // The pool travels as an argument rather than as a captured variable: a lambda that closes over the
+    // `using` variable can outlive the block that disposes it, even though every check here runs inside it.
+    RunOn("Submit hands back the delegate's value", pool, ValueRoundTrip);
+    RunOn("Submit follows async work to completion", pool, AsyncRoundTrip);
+    RunOn($"{threads} dedicated threads, never more at once", pool,
+        static p => DedicatedThreads(p, threads, namePrefix));
 }
 
 Run("One thread means strict FIFO", SequentialOrder);
@@ -48,16 +51,20 @@ Console.WriteLine();
 Console.WriteLine($"{passed}/{total} checks passed");
 return passed == total ? 0 : 1;
 
-void Run(string name, Func<(bool Ok, string Detail)> check)
+void Run(string name, Func<(bool Ok, string Detail)> check) => Report(name, check());
+
+void RunOn(string name, IExecutorService executor, Func<IExecutorService, (bool Ok, string Detail)> check) =>
+    Report(name, check(executor));
+
+void Report(string name, (bool Ok, string Detail) result)
 {
     total++;
-    (bool ok, string detail) = check();
-    if (ok)
+    if (result.Ok)
     {
         passed++;
     }
 
-    Console.WriteLine($"  [{(ok ? " ok " : "fail")}] {name,-46}  {detail}");
+    Console.WriteLine($"  [{(result.Ok ? " ok " : "fail")}] {name,-46}  {result.Detail}");
 }
 
 static (bool Ok, string Detail) ValueRoundTrip(IExecutorService pool)
@@ -115,11 +122,17 @@ static (bool Ok, string Detail) DedicatedThreads(IExecutorService pool, int thre
 
             if (parks)
             {
+                // Unlike the pool above, the countdown cannot be handed in as an argument: a task is an
+                // Action, so the only way to share it is to capture it. The capture is safe — Task.WaitAll
+                // below returns only once every one of these lambdas is done, and the countdown outlives
+                // that — but the analyzer has no way to see it.
+                // ReSharper disable AccessToDisposedClosure
                 allRunning.Signal();
                 if (!allRunning.Wait(TimeSpan.FromSeconds(5)))
                 {
                     timedOut = true;
                 }
+                // ReSharper restore AccessToDisposedClosure
             }
 
             Interlocked.Decrement(ref running.Value);
@@ -139,14 +152,14 @@ static (bool Ok, string Detail) DedicatedThreads(IExecutorService pool, int thre
 
 static (bool Ok, string Detail) SequentialOrder()
 {
-    const int Count = 20;
+    const int count = 20;
 
     using IExecutorService single = Executors.NewSingleThreadExecutor(
         new ThreadPoolExecutorOptions { ThreadNamePrefix = "sequential" });
 
     ConcurrentQueue<int> order = new();
-    Task[] tasks = new Task[Count];
-    for (int i = 0; i < Count; i++)
+    Task[] tasks = new Task[count];
+    for (int i = 0; i < count; i++)
     {
         int position = i;
         tasks[i] = single.Submit(() => order.Enqueue(position));
@@ -154,7 +167,7 @@ static (bool Ok, string Detail) SequentialOrder()
 
     Task.WaitAll(tasks);
 
-    return (order.SequenceEqual(Enumerable.Range(0, Count)), $"{Count} tasks ran in submission order");
+    return (order.SequenceEqual(Enumerable.Range(0, count)), $"{count} tasks ran in submission order");
 }
 
 static (bool Ok, string Detail) ShutdownDrains()
