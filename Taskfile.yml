@@ -5,6 +5,8 @@ vars:
   SOLUTION: ExecutorService.slnx
   PROJECT: src/ExecutorService/ExecutorService.csproj
   TEST_PROJECT: tests/ExecutorService.Tests/ExecutorService.Tests.csproj
+  SAMPLE_PROJECT: samples/ExecutorService.Metrics.Sample/ExecutorService.Metrics.Sample.csproj
+  SAMPLE_FRAMEWORK: net10.0
   CONFIGURATION: '{{.CONFIGURATION | default "Debug"}}'
   RESULTS_DIR: TestResults
   # Coverage is measured on one target framework: the gate enforces test completeness, which does not
@@ -27,7 +29,7 @@ tasks:
       - task --list
 
   tools:
-    desc: Restore local dotnet tools (reportgenerator)
+    desc: Restore local dotnet tools (reportgenerator, dotnet-counters)
     cmds:
       - dotnet tool restore
     sources:
@@ -66,6 +68,29 @@ tasks:
           echo "== run $i/{{.N}}"
           dotnet test --solution {{.SOLUTION}} --configuration {{.CONFIGURATION}} --no-build || exit 1
         done
+
+  metrics:
+    desc: >-
+      Run the metrics sample with the OpenTelemetry console exporter
+      (pass extra args after `--`, e.g. `task metrics -- --duration 0`)
+    cmds:
+      - dotnet run --project {{.SAMPLE_PROJECT}} --configuration {{.CONFIGURATION}} -- {{.CLI_ARGS}}
+
+  metrics:counters:
+    desc: Run the metrics sample and watch it live with dotnet-counters (no exporter output)
+    deps: [tools]
+    vars:
+      SAMPLE_BIN: samples/ExecutorService.Metrics.Sample/bin/{{.CONFIGURATION}}/{{.SAMPLE_FRAMEWORK}}/ExecutorService.Metrics.Sample
+    cmds:
+      - dotnet build {{.SAMPLE_PROJECT}} --configuration {{.CONFIGURATION}}
+      # dotnet-counters launches the sample itself rather than attaching to a backgrounded one: Task's
+      # embedded shell returns a job spec from `$!`, not a pid, and this way the monitor also owns the
+      # child's lifetime. The built binary, not `dotnet run`, so the monitored process is the app.
+      # --exporter none keeps the sample quiet so the monitor owns the terminal; --duration 0 runs it
+      # until Ctrl+C, which stops both.
+      - >-
+        dotnet dotnet-counters monitor --counters ExecutorService
+        -- ./{{.SAMPLE_BIN}} --exporter none --duration 0
 
   coverage:
     desc: Run tests with code coverage and build an HTML report in {{.COVERAGE_REPORT_DIR}}

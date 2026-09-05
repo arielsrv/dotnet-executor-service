@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>ExecutorService.Metrics.Sample</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <!-- Sample code: not part of the shipped surface, so it is excluded from the coverage gate. -->
+    <IsTestProject>false</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenTelemetry"/>
+    <PackageReference Include="OpenTelemetry.Exporter.Console"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/ExecutorService/ExecutorService.csproj"/>
+  </ItemGroup>
+
+</Project>

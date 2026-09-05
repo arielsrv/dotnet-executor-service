@@ -152,6 +152,22 @@ new ThreadPoolExecutorOptions { Meter = meterFactory.Create(ThreadPoolExecutor.M
 
 A supplied meter is never disposed by the executor; the one it creates for itself is released when it terminates.
 
+### Seeing it in action
+
+[`samples/ExecutorService.Metrics.Sample`](samples/ExecutorService.Metrics.Sample) drives an executor under
+synthetic load until every instrument has moved — including the rejected and canceled paths, which a healthy
+workload never reaches:
+
+```shell
+task metrics            # OpenTelemetry console exporter, 30 seconds
+task metrics:counters   # live dotnet-counters display, until Ctrl+C
+```
+
+One caveat it makes concrete: both duration instruments are in seconds, while OpenTelemetry's default
+histogram buckets span 0 to 10000 and are sized for milliseconds. Without a view supplying second-scaled
+boundaries, every measurement lands in the first bucket. See the
+[sample README](samples/ExecutorService.Metrics.Sample/README.md) for the configuration.
+
 ## Ambient context
 
 Submitted work runs under the caller's `ExecutionContext`, captured per submission, so `AsyncLocal<T>` values
