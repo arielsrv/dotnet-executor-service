@@ -56,6 +56,22 @@
     <InternalsVisibleTo Include="ExecutorService.Tests"/>
   </ItemGroup>
 
+  <!-- The floor of a shipped dependency is a promise to consumers: NuGet resolves upwards, so raising it
+       forces every .NET Framework consumer to follow, while lowering it can break the build. Dependabot is
+       told not to propose those bumps, but a person or a tool still can, and the change looks like ordinary
+       maintenance in a diff. It is not, so it fails the build until someone says so on purpose here. -->
+  <Target Name="VerifyShippedDependencyFloor" BeforeTargets="Build" Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <ItemGroup>
+      <_UnexpectedFloor Include="@(PackageVersion)"
+                        Condition="'%(Identity)' == 'Microsoft.Bcl.AsyncInterfaces' and '%(Version)' != '8.0.0'"/>
+      <_UnexpectedFloor Include="@(PackageVersion)"
+                        Condition="'%(Identity)' == 'System.Diagnostics.DiagnosticSource' and '%(Version)' != '8.0.1'"/>
+    </ItemGroup>
+    <Error Condition="'@(_UnexpectedFloor)' != ''"
+           Code="EXEC0001"
+           Text="Shipped dependency floor changed: @(_UnexpectedFloor->'%(Identity) is pinned at %(Version)', ', '). Consumers inherit this floor, so treat it as a public change: note it in CHANGELOG.md and update the expected version in VerifyShippedDependencyFloor to match."/>
+  </Target>
+
   <!-- nuget.org shows PackageReleaseNotes on the package page. A link there makes the reader go find
        what changed; the notes themselves say it. CHANGELOG.md stays the single source of truth and the
        section matching the version being packed is lifted out of it here. -->

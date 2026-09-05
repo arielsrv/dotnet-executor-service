@@ -7,6 +7,15 @@ updates:
     groups:
       nuget:
         patterns: ['*']
+    # The two dependencies the package ships are pinned to a floor, not to a current version: NuGet
+    # resolves upwards, so a consumer already on a newer one keeps it, while raising the floor would
+    # force every .NET Framework consumer to follow. Patch updates still come through — that is where
+    # security fixes land.
+    ignore:
+      - dependency-name: System.Diagnostics.DiagnosticSource
+        update-types: ['version-update:semver-major', 'version-update:semver-minor']
+      - dependency-name: Microsoft.Bcl.AsyncInterfaces
+        update-types: ['version-update:semver-major', 'version-update:semver-minor']
   - package-ecosystem: github-actions
     directory: /
     schedule:
