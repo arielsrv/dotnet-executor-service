@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-09-05
+
 ### Added
 
 - **netstandard2.0** target, so .NET Framework 4.6.2+, Mono and Unity can consume the library. It is the only
@@ -156,7 +158,8 @@ Released out of order: this version is numbered below 0.2.0 but contains later c
 
 - `ThreadPoolExecutor.IsWorkerThread` no longer allocates while checking the current thread.
 
-[Unreleased]: https://github.com/arielsrv/dotnet-executor-service/compare/v0.6.2...HEAD
+[Unreleased]: https://github.com/arielsrv/dotnet-executor-service/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.7.0
 [0.6.2]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.6.2
 [0.6.1]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.6.1
 [0.6.0]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.6.0
