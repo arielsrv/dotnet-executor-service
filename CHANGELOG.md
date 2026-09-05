@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.2] - 2026-09-05
+
+### Added
+
+- Markdown linting over the repository's documentation with `markdownlint-cli2`, wired into `task lint:md`
+  and into CI next to the format check.
+
+### Fixed
+
+- The README shipped inside the package renders the link to Java's `ExecutorService` correctly. A wrapped
+  line had left a stray space inside the link text, and one metrics table row was a column wider than the rest.
+
 ## [0.6.1] - 2026-09-05
 
 ### Added
@@ -119,7 +131,8 @@ Released out of order: this version is numbered below 0.2.0 but contains later c
 
 - `ThreadPoolExecutor.IsWorkerThread` no longer allocates while checking the current thread.
 
-[Unreleased]: https://github.com/arielsrv/dotnet-executor-service/compare/v0.6.1...HEAD
+[Unreleased]: https://github.com/arielsrv/dotnet-executor-service/compare/v0.6.2...HEAD
+[0.6.2]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.6.2
 [0.6.1]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.6.1
 [0.6.0]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.6.0
 [0.5.1]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.5.1
