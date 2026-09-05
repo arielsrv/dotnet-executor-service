@@ -200,6 +200,10 @@ public sealed class ThreadPoolExecutor : IExecutorService
         Shutdown();
         if (!IsWorkerThread())
         {
+            // Deliberately uncancellable: Dispose must not return until the queue has drained. The only
+            // token in reach is ShutdownToken, which fires on ShutdownNow — waiting on it would hand
+            // back a half-torn-down executor.
+            // ReSharper disable once MethodSupportsCancellation
             _terminated.Task.Wait();
         }
     }
@@ -236,8 +240,11 @@ public sealed class ThreadPoolExecutor : IExecutorService
 
         // The queue's completed state is the single source of truth for rejection: both Shutdown and
         // ShutdownNow complete it, and BlockingCollection.Add is atomic with respect to CompleteAdding.
+        // No token on the Add either: the queue is unbounded, so it never blocks, and a submission
+        // racing ShutdownNow has to surface as RejectedExecutionException, not as a cancellation.
         try
         {
+            // ReSharper disable once MethodSupportsCancellation
             _queue.Add(item);
         }
         catch (InvalidOperationException ex)
