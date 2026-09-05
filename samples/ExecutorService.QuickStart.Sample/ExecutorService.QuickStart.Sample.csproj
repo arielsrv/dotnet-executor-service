@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>ExecutorService.QuickStart.Sample</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <!-- Sample code: not part of the shipped surface, so it is excluded from the coverage gate. -->
+    <IsTestProject>false</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- A PackageReference, deliberately: every other project here builds the library from source, so
+         nothing else would notice a package that restores but does not work. This one consumes
+         ExecutorService the way a stranger does, straight from nuget.org. Version in
+         Directory.Packages.props. -->
+    <PackageReference Include="ExecutorService"/>
+  </ItemGroup>
+
+</Project>

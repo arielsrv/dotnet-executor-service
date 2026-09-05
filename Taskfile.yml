@@ -6,6 +6,7 @@ vars:
   PROJECT: src/ExecutorService/ExecutorService.csproj
   TEST_PROJECT: tests/ExecutorService.Tests/ExecutorService.Tests.csproj
   SAMPLE_PROJECT: samples/ExecutorService.Metrics.Sample/ExecutorService.Metrics.Sample.csproj
+  QUICKSTART_PROJECT: samples/ExecutorService.QuickStart.Sample/ExecutorService.QuickStart.Sample.csproj
   SAMPLE_FRAMEWORK: net10.0
   CONFIGURATION: '{{.CONFIGURATION | default "Debug"}}'
   RESULTS_DIR: TestResults
@@ -70,6 +71,13 @@ tasks:
           echo "== run $i/{{.N}}"
           dotnet test --solution {{.SOLUTION}} --configuration {{.CONFIGURATION}} --no-build || exit 1
         done
+
+  quickstart:
+    desc: >-
+      Smoke-test the ExecutorService package from nuget.org (the version pinned in Directory.Packages.props,
+      not the local sources) with a one-second console run
+    cmds:
+      - dotnet run --project {{.QUICKSTART_PROJECT}} --configuration {{.CONFIGURATION}}
 
   metrics:
     desc: >-

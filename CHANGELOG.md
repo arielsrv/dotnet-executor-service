@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- A quick start sample under `samples/ExecutorService.QuickStart.Sample` that consumes the library through a
+  `PackageReference` rather than a project reference, so it exercises the package exactly as published on
+  nuget.org. Five checks, about a second, non-zero exit on failure (`task quickstart`).
+
 ## [0.6.2] - 2026-09-05
 
 ### Added

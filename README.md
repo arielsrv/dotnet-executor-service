@@ -47,6 +47,9 @@ executor.Shutdown();
 bool terminated = executor.AwaitTermination(TimeSpan.FromSeconds(10));
 ```
 
+[`samples/ExecutorService.QuickStart.Sample`](samples/ExecutorService.QuickStart.Sample) runs all of this as a
+console smoke test against the package as published on nuget.org (`task quickstart`).
+
 Disposing the executor is equivalent to Java's `close()`: it calls `Shutdown()` and waits for termination.
 `await using` does the same without blocking.
 
