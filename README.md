@@ -3,7 +3,7 @@
 [![CI](https://github.com/arielsrv/dotnet-executor-service/actions/workflows/ci.yml/badge.svg)](https://github.com/arielsrv/dotnet-executor-service/actions/workflows/ci.yml)
 [![NuGet](https://img.shields.io/nuget/v/ExecutorService.svg)](https://www.nuget.org/packages/ExecutorService)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/ExecutorService.svg)](https://www.nuget.org/packages/ExecutorService)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)][license]
 
 A .NET port of Java's
 [`java.util.concurrent.ExecutorService`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/ExecutorService.html):
@@ -47,7 +47,7 @@ executor.Shutdown();
 bool terminated = executor.AwaitTermination(TimeSpan.FromSeconds(10));
 ```
 
-[`samples/ExecutorService.QuickStart.Sample`](samples/ExecutorService.QuickStart.Sample) runs all of this as a
+[`samples/ExecutorService.QuickStart.Sample`][quickstart-sample] runs all of this as a
 console smoke test against the package as published on nuget.org (`task quickstart`).
 
 Disposing the executor is equivalent to Java's `close()`: it calls `Shutdown()` and waits for termination.
@@ -157,7 +157,7 @@ A supplied meter is never disposed by the executor; the one it creates for itsel
 
 ### Seeing it in action
 
-[`samples/ExecutorService.Metrics.Sample`](samples/ExecutorService.Metrics.Sample) drives an executor under
+[`samples/ExecutorService.Metrics.Sample`][metrics-sample] drives an executor under
 synthetic load until every instrument has moved — including the rejected and canceled paths, which a healthy
 workload never reaches:
 
@@ -169,7 +169,7 @@ task metrics:counters   # live dotnet-counters display, until Ctrl+C
 One caveat it makes concrete: both duration instruments are in seconds, while OpenTelemetry's default
 histogram buckets span 0 to 10000 and are sized for milliseconds. Without a view supplying second-scaled
 boundaries, every measurement lands in the first bucket. See the
-[sample README](samples/ExecutorService.Metrics.Sample/README.md) for the configuration.
+[sample README][metrics-sample-docs] for the configuration.
 
 ## Ambient context
 
@@ -216,7 +216,7 @@ using (ExecutionContext.SuppressFlow())
 
 ## Roadmap
 
-See [CHANGELOG.md](CHANGELOG.md) for released features. Planned:
+See [CHANGELOG.md][changelog] for released features. Planned:
 
 - `InvokeAll` / `InvokeAny`
 - Cancellation-aware overloads (`Action<CancellationToken>`, `Func<CancellationToken, T>`)
@@ -227,8 +227,16 @@ See [CHANGELOG.md](CHANGELOG.md) for released features. Planned:
 
 ## Contributing
 
-Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](CODE_OF_CONDUCT.md).
+Contributions are welcome. Please read [CONTRIBUTING.md][contributing] and the [Code of Conduct][code-of-conduct].
 
 ## License
 
-[MIT](LICENSE)
+[MIT][license]
+
+[quickstart-sample]: https://github.com/arielsrv/dotnet-executor-service/tree/main/samples/ExecutorService.QuickStart.Sample
+[metrics-sample]: https://github.com/arielsrv/dotnet-executor-service/tree/main/samples/ExecutorService.Metrics.Sample
+[metrics-sample-docs]: https://github.com/arielsrv/dotnet-executor-service/blob/main/samples/ExecutorService.Metrics.Sample/README.md
+[changelog]: https://github.com/arielsrv/dotnet-executor-service/blob/main/CHANGELOG.md
+[contributing]: https://github.com/arielsrv/dotnet-executor-service/blob/main/CONTRIBUTING.md
+[code-of-conduct]: https://github.com/arielsrv/dotnet-executor-service/blob/main/CODE_OF_CONDUCT.md
+[license]: https://github.com/arielsrv/dotnet-executor-service/blob/main/LICENSE
