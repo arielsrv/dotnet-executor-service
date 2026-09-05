@@ -33,7 +33,7 @@ dotnet run --project samples/ExecutorService.QuickStart.Sample
 
 ```text
 ExecutorService quick start
-  package   ExecutorService 0.6.2+a06bfb76f2ffeb2f106890a4ebc3a312f49c0afe
+  package   ExecutorService 0.7.0+56fa24486f25ba126741ed3d79cc5181db2b495d
   runtime   .NET 10.0.11 (osx-arm64)
 
   [ ok ] Submit hands back the delegate's value          6 * 7 = 42
