@@ -7,12 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-09-05
+
 ### Changed
 
 - The floor of the two dependencies the netstandard2.0 build ships is now enforced rather than merely
   intended: dependabot no longer proposes major or minor bumps for them, and the build fails if the pins
   move. Consumers inherit that floor through NuGet's upward resolution, so raising it is a change to what
   the package promises, not routine maintenance.
+- The quick start sample hands the executor to each check as an argument instead of closing over the
+  `using` variable, and the two blocking calls in `ThreadPoolExecutor` that deliberately take no
+  cancellation token now say why. No behaviour changed: the library assembly differs only in comments.
+
+### Fixed
+
+- The metrics sample unsubscribes its Ctrl+C handler before the scope disposes the
+  `CancellationTokenSource` it captures. A Ctrl+C landing in that window called `Cancel()` on a disposed
+  source, which throws.
 
 ## [0.7.0] - 2026-09-05
 
@@ -165,7 +176,8 @@ Released out of order: this version is numbered below 0.2.0 but contains later c
 
 - `ThreadPoolExecutor.IsWorkerThread` no longer allocates while checking the current thread.
 
-[Unreleased]: https://github.com/arielsrv/dotnet-executor-service/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/arielsrv/dotnet-executor-service/compare/v0.7.1...HEAD
+[0.7.1]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.7.1
 [0.7.0]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.7.0
 [0.6.2]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.6.2
 [0.6.1]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.6.1
