@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- The floor of the two dependencies the netstandard2.0 build ships is now enforced rather than merely
+  intended: dependabot no longer proposes major or minor bumps for them, and the build fails if the pins
+  move. Consumers inherit that floor through NuGet's upward resolution, so raising it is a change to what
+  the package promises, not routine maintenance.
+
 ## [0.7.0] - 2026-09-05
 
 ### Added
