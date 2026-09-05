@@ -14,7 +14,7 @@
     <!-- Samples -->
     <!-- The quick start sample consumes the library as a consumer does, from nuget.org. Bump this to the
          version just released to smoke-test that release; it is never the version being built here. -->
-    <PackageVersion Include="ExecutorService" Version="0.7.0" />
+    <PackageVersion Include="ExecutorService" Version="0.7.1" />
     <PackageVersion Include="OpenTelemetry" Version="1.18.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.18.0" />
 
