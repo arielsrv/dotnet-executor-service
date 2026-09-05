@@ -32,7 +32,8 @@ Run `task` to list them; the most useful are:
 task test                 # run the suite (extra args after --, e.g. task test -- --filter-method "*Shutdown*")
 task test:stress N=20     # run the suite repeatedly to catch flaky concurrency tests
 task coverage:check       # tests + HTML report in TestResults/coverage, fails below 100% line/branch coverage
-task ci                   # everything CI runs: format check, Release build, tests, coverage gate, pack
+task lint:md              # lint the Markdown docs (task lint:md:fix applies what it can fix itself)
+task ci                   # everything CI runs: format check, Markdown lint, Release build, tests, coverage gate, pack
 ```
 
 The project keeps 100% line and branch coverage. New code needs tests that keep it there.

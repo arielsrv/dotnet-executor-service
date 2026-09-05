@@ -16,6 +16,8 @@ vars:
   COVERAGE_REPORT_DIR: '{{.RESULTS_DIR}}/coverage'
   COVERAGE_THRESHOLD: '{{.COVERAGE_THRESHOLD | default "100"}}'
   ARTIFACTS_DIR: artifacts
+  # Pinned so every machine and CI lint with the same rule set. Keep in sync with .github/workflows/ci.yml.
+  MARKDOWNLINT: markdownlint-cli2@0.23.2
 
 env:
   DOTNET_NOLOGO: 'true'
@@ -145,6 +147,16 @@ tasks:
     cmds:
       - dotnet format {{.SOLUTION}} --verify-no-changes
 
+  lint:md:
+    desc: Lint the Markdown docs against .markdownlint-cli2.jsonc (needs Node; npx fetches the pinned linter)
+    cmds:
+      - npx --yes {{.MARKDOWNLINT}}
+
+  lint:md:fix:
+    desc: Apply the Markdown fixes the linter can make on its own, then report what is left
+    cmds:
+      - npx --yes {{.MARKDOWNLINT}} --fix
+
   pack:
     desc: Build the NuGet package into {{.ARTIFACTS_DIR}}
     cmds:
@@ -158,9 +170,10 @@ tasks:
       - find . -type d \( -name bin -o -name obj \) -not -path "./.git/*" -prune -exec rm -rf {} +
 
   ci:
-    desc: Run everything CI runs, locally (format check, Release build, tests, coverage gate, pack)
+    desc: Run everything CI runs, locally (format check, Markdown lint, Release build, tests, coverage gate, pack)
     cmds:
       - task: format:check
+      - task: lint:md
       - task: build
         vars: { CONFIGURATION: Release }
       - task: test

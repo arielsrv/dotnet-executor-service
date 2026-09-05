@@ -42,6 +42,11 @@ jobs:
         if: runner.os == 'Linux'
         run: dotnet format --verify-no-changes --no-restore
 
+      # Keep the pinned version in sync with MARKDOWNLINT in Taskfile.yml.
+      - name: Markdown lint
+        if: runner.os == 'Linux'
+        run: npx --yes markdownlint-cli2@0.23.2
+
       - name: Build
         run: dotnet build --configuration Release --no-restore
 
