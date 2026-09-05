@@ -12,8 +12,8 @@ using ExecutorService;
 //
 // Every check prints what it observed and the process exits non-zero if any of them fails, so this
 // doubles as a post-release sanity check: `dotnet run --project samples/ExecutorService.QuickStart.Sample`.
-const int Threads = 4;
-const string NamePrefix = "quickstart";
+const int threads = 4;
+const string namePrefix = "quickstart";
 
 Assembly library = typeof(Executors).Assembly;
 string version = library.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
@@ -29,12 +29,12 @@ int passed = 0;
 int total = 0;
 
 using (IExecutorService pool = Executors.NewFixedThreadPool(
-           Threads,
-           new ThreadPoolExecutorOptions { ThreadNamePrefix = NamePrefix }))
+           threads,
+           new ThreadPoolExecutorOptions { ThreadNamePrefix = namePrefix }))
 {
     Run("Submit hands back the delegate's value", () => ValueRoundTrip(pool));
     Run("Submit follows async work to completion", () => AsyncRoundTrip(pool));
-    Run($"{Threads} dedicated threads, never more at once", () => DedicatedThreads(pool, Threads, NamePrefix));
+    Run($"{threads} dedicated threads, never more at once", () => DedicatedThreads(pool, threads, namePrefix));
 }
 
 Run("One thread means strict FIFO", SequentialOrder);
