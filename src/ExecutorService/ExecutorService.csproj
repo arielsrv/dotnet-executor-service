@@ -32,7 +32,7 @@
          matches. The PublicApiAnalyzers below track the same surface in source; this checks what
          actually ships, which is what consumers bind against. -->
     <EnablePackageValidation>true</EnablePackageValidation>
-    <PackageValidationBaselineVersion>0.6.2</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>0.7.0</PackageValidationBaselineVersion>
   </PropertyGroup>
 
   <ItemGroup>

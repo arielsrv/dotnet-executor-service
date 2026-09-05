@@ -50,6 +50,16 @@ The project keeps 100% line and branch coverage. New code needs tests that keep 
    (`feat:`, `fix:`, `docs:`, `test:`, `chore:`).
 6. Make sure `task ci` (or `dotnet build`, `dotnet test` and the coverage gate) passes locally before opening the PR.
 
+## Releasing
+
+1. Move the `[Unreleased]` entries in `CHANGELOG.md` under a `## [x.y.z] - yyyy-mm-dd` heading and update the
+   link definitions at the bottom. `dotnet pack` lifts that section into the package's release notes, so it is
+   what nuget.org will show.
+2. Tag `vx.y.z` and push the tag. The release workflow builds, tests, attests provenance and publishes.
+3. Once the version is live on nuget.org, bump `PackageValidationBaselineVersion` in
+   `src/ExecutorService/ExecutorService.csproj` to it, so the next pack is compared against the newest
+   release. Bumping it before the package is indexed breaks the build: the baseline has to be restorable.
+
 ## Design guidelines
 
 - Mirror Java's `java.util.concurrent` semantics unless .NET idioms clearly call for something else.
