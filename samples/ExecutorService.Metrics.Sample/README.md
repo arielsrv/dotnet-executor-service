@@ -36,13 +36,13 @@ By the end all five instruments have moved and `executor.tasks.completed` carrie
 
 ## Options
 
-| Flag             | Default   | Meaning                                                              |
-|------------------|-----------|----------------------------------------------------------------------|
-| `--exporter`     | `console` | `console` prints metrics to stdout; `none` stays quiet for dotnet-counters |
-| `--duration`     | `30`      | Seconds of load; `0` runs until Ctrl+C                               |
-| `--interval`     | `5`       | Seconds between console exporter flushes                             |
-| `--threads`      | `4`       | Worker threads in the pool                                           |
-| `--queue-depth`  | `50`      | Backlog the producer throttles towards                               |
+| Flag            | Default   | Meaning                                                                    |
+|-----------------|-----------|----------------------------------------------------------------------------|
+| `--exporter`    | `console` | `console` prints metrics to stdout; `none` stays quiet for dotnet-counters |
+| `--duration`    | `30`      | Seconds of load; `0` runs until Ctrl+C                                     |
+| `--interval`    | `5`       | Seconds between console exporter flushes                                   |
+| `--threads`     | `4`       | Worker threads in the pool                                                 |
+| `--queue-depth` | `50`      | Backlog the producer throttles towards                                     |
 
 ## Reading the output
 

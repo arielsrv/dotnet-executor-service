@@ -1,0 +1,18 @@
+// Markdown linting for the documentation in this repo — run it with `task lint:md`.
+// Rules: https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+{
+  "config": {
+    // Prose wraps at 120, the width the rest of the repo is written to. Tables and code blocks
+    // are exempt: neither can be wrapped without breaking what it renders.
+    "MD013": { "line_length": 120, "tables": false, "code_blocks": false },
+
+    // Keep a Changelog repeats "Added" / "Fixed" under every release heading. Only duplicates
+    // sharing a parent heading are ambiguous.
+    "MD024": { "siblings_only": true }
+  },
+
+  // Everything tracked in git, minus the GitHub templates: those are fragments GitHub splices
+  // into an issue or PR body, so they start at "## Summary" rather than a top-level heading.
+  "globs": ["**/*.md", "!.github"],
+  "gitignore": true
+}

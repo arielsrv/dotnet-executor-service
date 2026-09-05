@@ -5,8 +5,8 @@
 [![NuGet Downloads](https://img.shields.io/nuget/dt/ExecutorService.svg)](https://www.nuget.org/packages/ExecutorService)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-A .NET port of Java's [
-`java.util.concurrent.ExecutorService`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/ExecutorService.html):
+A .NET port of Java's
+[`java.util.concurrent.ExecutorService`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/ExecutorService.html):
 fixed-size pools of **dedicated threads**, an explicit **lifecycle** (`Shutdown`, `ShutdownNow`,
 `AwaitTermination`), and `Task`-based futures.
 
@@ -125,15 +125,15 @@ Datadog or Honeycomb. To look without any pipeline at all:
 dotnet-counters monitor --process-id <pid> --counters ExecutorService
 ```
 
-| Instrument                          | Kind      | Unit       | Meaning                                        |
-|-------------------------------------|-----------|------------|------------------------------------------------|
-| `executor.tasks.queued`             | Gauge     | `{task}`   | Tasks waiting to be executed                   |
-| `executor.threads`                  | Gauge     | `{thread}` | Worker threads owned by the executor           |
-| `executor.tasks.submitted`          | Counter   | `{task}`   | Tasks accepted for execution                   |
-| `executor.tasks.completed`          | Counter   | `{task}`   | Terminal tasks, tagged by outcome              |
-| `executor.tasks.rejected`           | Counter   | `{task}`   | Submissions refused after shutdown             |
+| Instrument                          | Kind      | Unit       | Meaning                                         |
+|-------------------------------------|-----------|------------|-------------------------------------------------|
+| `executor.tasks.queued`             | Gauge     | `{task}`   | Tasks waiting to be executed                    |
+| `executor.threads`                  | Gauge     | `{thread}` | Worker threads owned by the executor            |
+| `executor.tasks.submitted`          | Counter   | `{task}`   | Tasks accepted for execution                    |
+| `executor.tasks.completed`          | Counter   | `{task}`   | Terminal tasks, tagged by outcome               |
+| `executor.tasks.rejected`           | Counter   | `{task}`   | Submissions refused after shutdown              |
 | `executor.task.queue.duration`      | Histogram | `s`        | Time a task waited in the queue before starting |
-| `executor.task.execution.duration`  | Histogram | `s`        | Time a task spent executing                    |
+| `executor.task.execution.duration`  | Histogram | `s`        | Time a task spent executing                     |
 
 Every measurement carries an `executor.name` tag, taken from `ThreadNamePrefix`, so several executors in one
 process stay apart. `executor.tasks.completed` adds `executor.task.status` with `success`, `faulted` or
