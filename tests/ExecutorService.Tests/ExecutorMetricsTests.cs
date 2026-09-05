@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Globalization;
 
@@ -17,6 +18,7 @@ public sealed class ExecutorMetricsTests
         await using ThreadPoolExecutor executor = new(1, new ThreadPoolExecutorOptions { Meter = meter });
 
         await executor.Submit(() => 42).WaitAsync(Timeout, Ct);
+        await collector.WaitForCount("executor.tasks.completed", 1, Timeout, Ct);
 
         Assert.Equal(1, collector.Sum("executor.tasks.submitted"));
         Assert.Equal(1, collector.Sum("executor.tasks.completed"));
@@ -38,6 +40,7 @@ public sealed class ExecutorMetricsTests
         await Assert.ThrowsAsync<InvalidOperationException>(() => faulted.WaitAsync(Timeout, Ct));
         Task canceled = executor.Submit(() => throw new OperationCanceledException());
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => canceled.WaitAsync(Timeout, Ct));
+        await collector.WaitForCount("executor.tasks.completed", 2, Timeout, Ct);
 
         Assert.Contains("faulted", collector.Tags("executor.tasks.completed", "executor.task.status"));
         Assert.Contains("canceled", collector.Tags("executor.tasks.completed", "executor.task.status"));
@@ -190,6 +193,27 @@ public sealed class ExecutorMetricsTests
         public int Count(string name)
         {
             return Snapshot(name).Count;
+        }
+
+        /// <summary>
+        ///     Waits until <paramref name="name" /> has been measured at least <paramref name="count" /> times.
+        ///     A task's future completes before the executor records its completion — deliberately, so counters
+        ///     stay off the latency path — which leaves a window where awaiting the task returns before the
+        ///     measurement lands. Asserting straight after the await is a race, and a rare one, which is the
+        ///     worst kind.
+        /// </summary>
+        public async Task WaitForCount(string name, int count, TimeSpan timeout, CancellationToken cancellationToken)
+        {
+            long deadline = Stopwatch.GetTimestamp() + (long)(timeout.TotalSeconds * Stopwatch.Frequency);
+
+            while (Count(name) < count)
+            {
+                Assert.True(
+                    Stopwatch.GetTimestamp() < deadline,
+                    $"Timed out waiting for {count} measurement(s) of '{name}'; saw {Count(name)}.");
+
+                await Task.Delay(5, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         public double Sum(string name)
