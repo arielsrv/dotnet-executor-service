@@ -33,12 +33,18 @@ using MeterProvider? provider = options.UseConsoleExporter
     : null;
 
 using CancellationTokenSource stopping = new();
-Console.CancelKeyPress += (_, e) =>
+
+// Kept in a variable so it can be unsubscribed below: the handler holds on to `stopping`, and a
+// Ctrl+C arriving after this scope disposes the source would call Cancel() on a disposed object.
+// The unsubscribe is what makes that safe, and it is also what the analyzer cannot see.
+// ReSharper disable once AccessToDisposedClosure
+ConsoleCancelEventHandler stopOnCancelKey = (_, e) =>
 {
     // Let the scenario wind down through its own shutdown path instead of killing the process.
     e.Cancel = true;
     stopping.Cancel();
 };
+Console.CancelKeyPress += stopOnCancelKey;
 
 Report($"pid {Environment.ProcessId} — meter '{ThreadPoolExecutor.MeterName}'");
 if (!options.UseConsoleExporter)
@@ -50,7 +56,14 @@ Report(options.Duration == Timeout.InfiniteTimeSpan
     ? "running until Ctrl+C"
     : $"running for {options.Duration.TotalSeconds:0}s (Ctrl+C to stop early)");
 
-await RunAsync(options, stopping.Token).ConfigureAwait(false);
+try
+{
+    await RunAsync(options, stopping.Token).ConfigureAwait(false);
+}
+finally
+{
+    Console.CancelKeyPress -= stopOnCancelKey;
+}
 
 // Dispose would flush too, but an explicit flush prints the final totals before the process exits
 // instead of racing it.
