@@ -206,12 +206,21 @@ public sealed class ThreadPoolExecutor : IExecutorService
 
     /// <summary>
     ///     Shuts down the executor and asynchronously waits until all queued tasks finish.
+    ///     Does not wait when called from one of the executor's own worker threads.
     /// </summary>
     /// <returns>A task that completes when the executor has terminated.</returns>
     public async ValueTask DisposeAsync()
     {
         Shutdown();
-        await _terminated.Task.ConfigureAwait(false);
+
+        // Same guard as Dispose, and for a sharper reason: Submit(Func<Task>) blocks its worker on
+        // GetAwaiter().GetResult(), so awaiting termination from that worker would keep it alive
+        // forever and _terminated would never complete. Evaluated before the first await, so it
+        // still observes the caller's thread.
+        if (!IsWorkerThread())
+        {
+            await _terminated.Task.ConfigureAwait(false);
+        }
     }
 
     private void Enqueue(WorkItem item)
@@ -285,7 +294,7 @@ public sealed class ThreadPoolExecutor : IExecutorService
         }
         finally
         {
-            // The queue is intentionally never disposed: ShutdownNow and QueuedCount remain valid
+            // The queue is intentionally never disposed of: ShutdownNow and QueuedCount remain valid
             // after termination, and BlockingCollection holds no OS handles unless a WaitHandle is requested.
             if (Interlocked.Decrement(ref _liveWorkers) == 0)
             {

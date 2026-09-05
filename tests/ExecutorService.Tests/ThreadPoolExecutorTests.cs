@@ -350,6 +350,19 @@ public sealed class ThreadPoolExecutorTests
     }
 
     [Fact]
+    public async Task DisposeAsync_FromWorkerThread_DoesNotDeadlock()
+    {
+        ThreadPoolExecutor executor = new(1);
+
+        // Submit(Func<Task>) blocks the worker on the returned task, so a DisposeAsync that awaited
+        // termination here would wait on the very thread that has to finish first.
+        Task task = executor.Submit(async () => await executor.DisposeAsync());
+
+        await task.WaitAsync(Timeout, Ct);
+        Assert.True(await executor.AwaitTerminationAsync(Timeout, Ct));
+    }
+
+    [Fact]
     public void Shutdown_IsIdempotent()
     {
         ThreadPoolExecutor executor = new(1);
