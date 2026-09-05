@@ -1,10 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <!-- netstandard2.0 is what .NET Framework 4.6.2+ and Mono consumers restore; the modern targets get
+         their own build so they keep the in-box APIs and the zero-dependency package. -->
+    <TargetFrameworks>netstandard2.0;net8.0;net10.0</TargetFrameworks>
     <RootNamespace>ExecutorService</RootNamespace>
     <AssemblyName>ExecutorService</AssemblyName>
-    <IsAotCompatible>true</IsAotCompatible>
+    <!-- Native AOT does not apply to netstandard2.0, and the analyzer refuses to run there. -->
+    <IsAotCompatible Condition="'$(TargetFramework)' != 'netstandard2.0'">true</IsAotCompatible>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
@@ -40,6 +43,13 @@
   <ItemGroup>
     <PackageReference Include="MinVer" PrivateAssets="all"/>
     <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="all"/>
+  </ItemGroup>
+
+  <!-- The only dependencies in the package, and only on the target that cannot avoid them: netstandard2.0
+       has neither the Metrics API nor IAsyncDisposable in the framework. net8.0 and net10.0 stay at zero. -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces"/>
+    <PackageReference Include="System.Diagnostics.DiagnosticSource"/>
   </ItemGroup>
 
   <ItemGroup>

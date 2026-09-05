@@ -2,6 +2,11 @@
 
   <!-- Central Package Management: every PackageReference version lives here. -->
   <ItemGroup>
+    <!-- Shipped: referenced only by the netstandard2.0 build of the library. Kept at the lowest version
+         that works, because a library's dependency floor is what its consumers inherit. -->
+    <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
+    <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="8.0.1" />
+
     <!-- Build / packaging -->
     <PackageVersion Include="MinVer" Version="7.0.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="5.6.0" />

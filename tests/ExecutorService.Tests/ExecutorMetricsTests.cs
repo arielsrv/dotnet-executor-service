@@ -199,7 +199,7 @@ public sealed class ExecutorMetricsTests
 
         public double Last(string name)
         {
-            return Snapshot(name)[^1].Value;
+            return Snapshot(name).Last().Value;
         }
 
         public List<double> Values(string name)
@@ -209,7 +209,7 @@ public sealed class ExecutorMetricsTests
 
         public object? Tag(string name, string tagKey)
         {
-            return Snapshot(name)[^1].Tags[tagKey];
+            return Snapshot(name).Last().Tags[tagKey];
         }
 
         public List<object?> Tags(string name, string tagKey)

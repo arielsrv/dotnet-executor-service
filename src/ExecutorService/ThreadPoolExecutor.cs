@@ -54,7 +54,7 @@ public sealed class ThreadPoolExecutor : IExecutorService
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="threadCount" /> is less than 1.</exception>
     public ThreadPoolExecutor(int threadCount, ThreadPoolExecutorOptions? options = null)
     {
-        ArgumentOutOfRangeException.ThrowIfLessThan(threadCount, 1);
+        Throw.IfLessThan(threadCount, 1);
         options ??= new ThreadPoolExecutorOptions();
 
         _workers = new Thread[threadCount];
@@ -70,7 +70,7 @@ public sealed class ThreadPoolExecutor : IExecutorService
                 Priority = options.Priority
             };
             _workers[i] = worker;
-            worker.UnsafeStart();
+            worker.StartWithoutContextFlow();
         }
     }
 
@@ -95,14 +95,14 @@ public sealed class ThreadPoolExecutor : IExecutorService
     /// <inheritdoc />
     public void Execute(Action command)
     {
-        ArgumentNullException.ThrowIfNull(command);
+        Throw.IfNull(command);
         Enqueue(new ActionWorkItem(command));
     }
 
     /// <inheritdoc />
     public Task Submit(Action task)
     {
-        ArgumentNullException.ThrowIfNull(task);
+        Throw.IfNull(task);
         ActionWorkItem item = new(task);
         Enqueue(item);
         return item.Task;
@@ -111,7 +111,7 @@ public sealed class ThreadPoolExecutor : IExecutorService
     /// <inheritdoc />
     public Task<TResult> Submit<TResult>(Func<TResult> task)
     {
-        ArgumentNullException.ThrowIfNull(task);
+        Throw.IfNull(task);
         FuncWorkItem<TResult> item = new(task);
         Enqueue(item);
         return item.TypedTask;
@@ -120,7 +120,7 @@ public sealed class ThreadPoolExecutor : IExecutorService
     /// <inheritdoc />
     public Task Submit(Func<Task> task)
     {
-        ArgumentNullException.ThrowIfNull(task);
+        Throw.IfNull(task);
 
         // Blocking the worker is deliberate: it is what makes ThreadCount an upper bound on how many of
         // these run concurrently. GetResult also unwraps the exception instead of aggregating it.
@@ -132,7 +132,7 @@ public sealed class ThreadPoolExecutor : IExecutorService
     /// <inheritdoc />
     public Task<TResult> Submit<TResult>(Func<Task<TResult>> task)
     {
-        ArgumentNullException.ThrowIfNull(task);
+        Throw.IfNull(task);
         FuncWorkItem<TResult> item = new(() => task().GetAwaiter().GetResult());
         Enqueue(item);
         return item.TypedTask;
@@ -263,7 +263,7 @@ public sealed class ThreadPoolExecutor : IExecutorService
     {
         if (item.EnqueuedTimestamp is { } enqueued)
         {
-            _metrics.RecordQueueDuration(Stopwatch.GetElapsedTime(enqueued));
+            _metrics.RecordQueueDuration(Clock.ElapsedSince(enqueued));
         }
 
         if (Volatile.Read(ref _state) == Stopped)
@@ -277,7 +277,7 @@ public sealed class ThreadPoolExecutor : IExecutorService
         item.Run();
         if (started is { } start)
         {
-            _metrics.RecordExecutionDuration(Stopwatch.GetElapsedTime(start));
+            _metrics.RecordExecutionDuration(Clock.ElapsedSince(start));
         }
 
         _metrics.TaskCompleted(item.Task.Status);

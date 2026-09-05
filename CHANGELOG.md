@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **netstandard2.0** target, so .NET Framework 4.6.2+, Mono and Unity can consume the library. It is the only
+  target with dependencies — `System.Diagnostics.DiagnosticSource` and `Microsoft.Bcl.AsyncInterfaces`, neither
+  of which .NET Framework ships — and the test suite runs against it on `net472` in CI. .NET 8 and .NET 10
+  builds are unchanged and still have no dependencies.
 - A quick start sample under `samples/ExecutorService.QuickStart.Sample` that consumes the library through a
   `PackageReference` rather than a project reference, so it exercises the package exactly as published on
   nuget.org. Five checks, about a second, non-zero exit on failure (`task quickstart`).
