@@ -5,8 +5,9 @@ on:
     tags: ['v*.*.*']
 
 permissions:
-  contents: write  # create the GitHub Release
-  id-token: write  # request the GitHub OIDC token for NuGet Trusted Publishing
+  contents: write       # create the GitHub Release
+  id-token: write       # request the GitHub OIDC token for NuGet Trusted Publishing
+  attestations: write   # record where the package was built from
 
 env:
   DOTNET_NOLOGO: true
@@ -18,12 +19,12 @@ jobs:
     runs-on: ubuntu-latest
     environment: nuget
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v6
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
         with:
           # 8.0.x supplies the runtime the net8.0 test run needs; global.json still pins the SDK.
           dotnet-version: 8.0.x
@@ -38,11 +39,18 @@ jobs:
       - name: Pack
         run: dotnet pack src/ExecutorService/ExecutorService.csproj --configuration Release --no-build --output artifacts/
 
+      # Signed, verifiable provenance: which workflow, which commit, which runner produced this exact
+      # nupkg. `gh attestation verify <file> --repo arielsrv/dotnet-executor-service` checks it.
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-path: artifacts/*.nupkg
+
       # Exchanges the OIDC token for an API key that is valid for one hour, so it
       # must be requested immediately before the push.
       - name: NuGet login (Trusted Publishing)
         id: nuget-login
-        uses: NuGet/login@v1
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1
         with:
           user: arielpineiro  # nuget.org profile name, not the account email
 
@@ -50,7 +58,7 @@ jobs:
         run: dotnet nuget push "artifacts/*.nupkg" --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
         with:
           files: artifacts/*.*nupkg
           generate_release_notes: true

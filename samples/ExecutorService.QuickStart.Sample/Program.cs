@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 using ExecutorService;
 
@@ -20,9 +21,12 @@ string version = library.GetCustomAttribute<AssemblyInformationalVersionAttribut
                  ?? library.GetName().Version?.ToString()
                  ?? "unknown";
 
+// Not Assembly.Location: it returns an empty string in a single-file or native AOT build, and asking
+// for it at all is an error under the AOT analyzer. The runtime line says more anyway — it is how this
+// same binary reports itself whether it runs on .NET 10, on .NET Framework, or as a native image.
 Console.WriteLine("ExecutorService quick start");
 Console.WriteLine($"  package   ExecutorService {version}");
-Console.WriteLine($"  assembly  {library.Location}");
+Console.WriteLine($"  runtime   {RuntimeInformation.FrameworkDescription} ({RuntimeInformation.RuntimeIdentifier})");
 Console.WriteLine();
 
 int passed = 0;

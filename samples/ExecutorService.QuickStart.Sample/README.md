@@ -34,7 +34,7 @@ dotnet run --project samples/ExecutorService.QuickStart.Sample
 ```text
 ExecutorService quick start
   package   ExecutorService 0.6.2+a06bfb76f2ffeb2f106890a4ebc3a312f49c0afe
-  assembly  .../samples/ExecutorService.QuickStart.Sample/bin/Debug/net10.0/ExecutorService.dll
+  runtime   .NET 10.0.11 (osx-arm64)
 
   [ ok ] Submit hands back the delegate's value          6 * 7 = 42
   [ ok ] Submit follows async work to completion         resolved "after the await"
@@ -47,6 +47,9 @@ ExecutorService quick start
 
 The `+` suffix on the version is the commit the package was built from, so the line also says exactly which
 source produced the assembly being tested.
+
+The same program is what CI publishes as a **native AOT** binary and runs, which is what turns the library's
+`IsAotCompatible` declaration into something proven rather than promised (`task aot` does it locally).
 
 ## What it checks
 

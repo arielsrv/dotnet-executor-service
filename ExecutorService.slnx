@@ -25,6 +25,9 @@
     <Project Path="samples/ExecutorService.Metrics.Sample/ExecutorService.Metrics.Sample.csproj"/>
     <Project Path="samples/ExecutorService.QuickStart.Sample/ExecutorService.QuickStart.Sample.csproj"/>
   </Folder>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/ExecutorService.Benchmarks/ExecutorService.Benchmarks.csproj"/>
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/ExecutorService.Tests/ExecutorService.Tests.csproj"/>
   </Folder>

@@ -12,6 +12,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A quick start sample under `samples/ExecutorService.QuickStart.Sample` that consumes the library through a
   `PackageReference` rather than a project reference, so it exercises the package exactly as published on
   nuget.org. Five checks, about a second, non-zero exit on failure (`task quickstart`).
+- Benchmarks under `benchmarks/ExecutorService.Benchmarks` measuring submission cost and allocations against
+  `Task.Run` as a baseline (`task bench`).
+- A native AOT smoke test in CI: the quick start sample is published as a native binary and run, which turns
+  `IsAotCompatible` from a declaration into something proven (`task aot`).
+- Package validation against the previous release, so a dropped target framework or a broken signature fails
+  the pack instead of reaching nuget.org.
+
+### Changed
+
+- The package page on nuget.org now shows the release notes for the version being published, lifted from this
+  file at pack time, instead of a link to it.
+- Links in the packaged README are absolute. nuget.org strips relative ones, which left `CONTRIBUTING.md`,
+  `LICENSE` and the sample links as dead anchors on the package page.
+- Workflow actions are pinned by commit SHA, and released packages carry signed build provenance
+  (`gh attestation verify <file> --repo arielsrv/dotnet-executor-service`).
 
 ## [0.6.2] - 2026-09-05
 

@@ -7,6 +7,7 @@ vars:
   TEST_PROJECT: tests/ExecutorService.Tests/ExecutorService.Tests.csproj
   SAMPLE_PROJECT: samples/ExecutorService.Metrics.Sample/ExecutorService.Metrics.Sample.csproj
   QUICKSTART_PROJECT: samples/ExecutorService.QuickStart.Sample/ExecutorService.QuickStart.Sample.csproj
+  BENCH_PROJECT: benchmarks/ExecutorService.Benchmarks/ExecutorService.Benchmarks.csproj
   SAMPLE_FRAMEWORK: net10.0
   CONFIGURATION: '{{.CONFIGURATION | default "Debug"}}'
   RESULTS_DIR: TestResults
@@ -78,6 +79,22 @@ tasks:
       not the local sources) with a one-second console run
     cmds:
       - dotnet run --project {{.QUICKSTART_PROJECT}} --configuration {{.CONFIGURATION}}
+
+  aot:
+    desc: >-
+      Publish the quick start sample as a native AOT binary and run it, proving the package keeps its
+      IsAotCompatible promise end to end (same check CI runs)
+    cmds:
+      - rm -rf {{.ARTIFACTS_DIR}}/aot
+      - dotnet publish {{.QUICKSTART_PROJECT}} --configuration Release -p:PublishAot=true -o {{.ARTIFACTS_DIR}}/aot
+      - ./{{.ARTIFACTS_DIR}}/aot/ExecutorService.QuickStart.Sample
+
+  bench:
+    desc: >-
+      Run the benchmarks (always Release; pass BenchmarkDotNet args after `--`,
+      e.g. `task bench -- --job short --filter *Submit*`)
+    cmds:
+      - dotnet run --project {{.BENCH_PROJECT}} --configuration Release -- {{.CLI_ARGS}}
 
   metrics:
     desc: >-

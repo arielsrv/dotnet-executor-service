@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>ExecutorService.Benchmarks</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>false</IsTestProject>
+    <!-- BenchmarkDotNet requires public instance methods it can discover; CA1822 would have them static. -->
+    <NoWarn>$(NoWarn);CA1822</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The library from source, not from nuget.org: a benchmark measures the code being changed. -->
+    <ProjectReference Include="../../src/ExecutorService/ExecutorService.csproj"/>
+  </ItemGroup>
+
+</Project>

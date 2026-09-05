@@ -16,7 +16,20 @@
     <PackageTags>executor;executorservice;threadpool;concurrency;threading;java;tasks</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
+    <!-- Replaced at pack time with this version's own CHANGELOG section; see below. The link is the
+         fallback for versions the changelog does not describe, such as local preview builds. -->
     <PackageReleaseNotes>See https://github.com/arielsrv/dotnet-executor-service/blob/main/CHANGELOG.md</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ChangelogFile>$(MSBuildThisFileDirectory)../../CHANGELOG.md</ChangelogFile>
+
+    <!-- Compares the package being built against the last one on nuget.org and fails the pack on a
+         breaking change: a dropped target framework, a removed type, a signature that no longer
+         matches. The PublicApiAnalyzers below track the same surface in source; this checks what
+         actually ships, which is what consumers bind against. -->
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <PackageValidationBaselineVersion>0.6.2</PackageValidationBaselineVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -32,5 +45,45 @@
   <ItemGroup>
     <InternalsVisibleTo Include="ExecutorService.Tests"/>
   </ItemGroup>
+
+  <!-- nuget.org shows PackageReleaseNotes on the package page. A link there makes the reader go find
+       what changed; the notes themselves say it. CHANGELOG.md stays the single source of truth and the
+       section matching the version being packed is lifted out of it here. -->
+  <UsingTask TaskName="ReadChangelogSection"
+             TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <ChangelogFile ParameterType="System.String" Required="true"/>
+      <ReleaseVersion ParameterType="System.String" Required="true"/>
+      <Notes ParameterType="System.String" Output="true"/>
+    </ParameterGroup>
+    <Task>
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+          string text = System.IO.File.ReadAllText(ChangelogFile);
+          string pattern = @"^## \[" + System.Text.RegularExpressions.Regex.Escape(ReleaseVersion)
+                           + @"\][^\n]*\n(.*?)(?=^## \[)";
+          var match = System.Text.RegularExpressions.Regex.Match(
+              text,
+              pattern,
+              System.Text.RegularExpressions.RegexOptions.Singleline
+                  | System.Text.RegularExpressions.RegexOptions.Multiline);
+          Notes = match.Success ? match.Groups[1].Value.Trim() : string.Empty;
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="SetPackageReleaseNotesFromChangelog" BeforeTargets="GenerateNuspec" Condition="Exists('$(ChangelogFile)')">
+    <ReadChangelogSection ChangelogFile="$(ChangelogFile)" ReleaseVersion="$(PackageVersion)">
+      <Output TaskParameter="Notes" PropertyName="_ChangelogNotes"/>
+    </ReadChangelogSection>
+    <!-- A preview build between releases has no section of its own; it keeps the link instead. -->
+    <PropertyGroup Condition="'$(_ChangelogNotes)' != ''">
+      <PackageReleaseNotes>$(_ChangelogNotes)</PackageReleaseNotes>
+    </PropertyGroup>
+    <Message Importance="high" Condition="'$(_ChangelogNotes)' == ''"
+             Text="No CHANGELOG.md section for $(PackageVersion); packing with the changelog link as release notes."/>
+  </Target>
 
 </Project>

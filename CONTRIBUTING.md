@@ -33,6 +33,8 @@ task test                 # run the suite (extra args after --, e.g. task test -
 task test:stress N=20     # run the suite repeatedly to catch flaky concurrency tests
 task coverage:check       # tests + HTML report in TestResults/coverage, fails below 100% line/branch coverage
 task lint:md              # lint the Markdown docs (task lint:md:fix applies what it can fix itself)
+task bench                # run the benchmarks (task bench -- --job short for a rough answer)
+task aot                  # publish the quick start sample as a native binary and run it
 task ci                   # everything CI runs: format check, Markdown lint, Release build, tests, coverage gate, pack
 ```
 
