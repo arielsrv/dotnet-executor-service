@@ -23,6 +23,24 @@ jobs:
         with:
           fetch-depth: 0
 
+      # The GitHub Release body is what Dependabot and Renovate paste into a consumer's update PR, so it
+      # has to carry this version's changelog section rather than a link back here. Same section the pack
+      # lifts into the package's release notes, and first in the job on purpose: a tag whose version has
+      # no section fails here, before anything reaches nuget.org.
+      - name: Release notes from the changelog
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v v="$version" '
+            $0 ~ "^## \\[" v "\\]" { capture = 1; next }
+            capture && /^## \[/ { exit }
+            capture { print }
+          ' CHANGELOG.md > release-notes.md
+          if [ ! -s release-notes.md ]; then
+            echo "::error::No CHANGELOG.md section for $version; add one before tagging."
+            exit 1
+          fi
+          cat release-notes.md
+
       - name: Setup .NET
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
         with:
@@ -61,4 +79,6 @@ jobs:
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
         with:
           files: artifacts/*.*nupkg
+          # The changelog first, then GitHub's generated list of commits appended under it.
+          body_path: release-notes.md
           generate_release_notes: true
