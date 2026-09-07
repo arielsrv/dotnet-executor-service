@@ -7,6 +7,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- The quick start sample smoke-tests 0.7.2 from nuget.org and the package validation baseline is 0.7.2, so the next
+  pack is compared against the newest release.
+
 ## [0.7.2] - 2026-09-07
 
 ### Changed
