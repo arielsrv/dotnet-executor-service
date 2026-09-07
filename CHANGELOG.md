@@ -7,6 +7,21 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.7.2] - 2026-09-07
+
+### Changed
+
+- The inspections Rider shows in the editor now gate the build: `task lint:inspect` and a CI step run ReSharper's
+  `inspectcode` over the whole solution and fail on any finding. The severities that only make sense in tests and
+  benchmarks (closures over a `using` variable the test awaits, `[Params]` setters BenchmarkDotNet drives by reflection)
+  are tuned in `.editorconfig`, so the IDE and CI agree. The one finding in the library, a redundant namespace
+  qualifier in the netstandard2.0 polyfill, is fixed.
+- The metrics gauge callback hands its single tag to `Measurement<T>` directly instead of wrapping it in a collection
+  expression. No behaviour changed: the library assembly differs only in how that one argument is passed.
+- Formatting pass over tests, samples and `nuget.config`; test fixtures dispose executors with `await using`. MinVer
+  8.0.0 builds the package. The quick start sample now smoke-tests 0.7.1 from nuget.org.
+- The package validation baseline is 0.7.1, the newest release on nuget.org, so this pack is compared against it.
+
 ## [0.7.1] - 2026-09-05
 
 ### Changed
@@ -176,7 +191,8 @@ Released out of order: this version is numbered below 0.2.0 but contains later c
 
 - `ThreadPoolExecutor.IsWorkerThread` no longer allocates while checking the current thread.
 
-[Unreleased]: https://github.com/arielsrv/dotnet-executor-service/compare/v0.7.1...HEAD
+[Unreleased]: https://github.com/arielsrv/dotnet-executor-service/compare/v0.7.2...HEAD
+[0.7.2]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.7.2
 [0.7.1]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.7.1
 [0.7.0]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.7.0
 [0.6.2]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.6.2
