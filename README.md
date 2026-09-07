@@ -6,8 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)][license]
 
 A .NET port of Java's
-[
-`java.util.concurrent.ExecutorService`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/ExecutorService.html):
+[`java.util.concurrent.ExecutorService`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/ExecutorService.html):
 fixed-size pools of **dedicated threads**, an explicit **lifecycle** (`Shutdown`, `ShutdownNow`,
 `AwaitTermination`), and `Task`-based futures.
 

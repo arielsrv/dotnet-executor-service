@@ -364,3 +364,18 @@ dotnet_naming_style.s_camelcase.required_suffix =
 dotnet_naming_style.s_camelcase.word_separator =
 dotnet_naming_style.s_camelcase.capitalization = camel_case
 
+#### ReSharper / Rider inspections ####
+# Read by Rider and by `jb inspectcode` (task lint:inspect), so the IDE and CI agree on what is a finding.
+
+[tests/**/*.cs]
+# Test lambdas capture an executor or a gate that a `using` disposes at the end of the test; every test
+# awaits or waits the work before the scope closes, so the "disposed in the outer scope" warning never
+# describes a real bug here. Same for counters the lambda bumps with Interlocked on purpose.
+resharper_access_to_disposed_closure_highlighting = none
+resharper_access_to_modified_closure_highlighting = none
+# ActivitySource.StartActivity defaults its name from [CallerMemberName]; naming the activity is the point.
+resharper_explicit_caller_info_argument_highlighting = none
+
+[benchmarks/**/*.cs]
+# BenchmarkDotNet sets [Params] properties by reflection; ReSharper cannot see that setter being used.
+resharper_unused_auto_property_accessor_global_highlighting = none

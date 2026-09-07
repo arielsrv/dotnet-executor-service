@@ -18,6 +18,7 @@ vars:
   COVERAGE_REPORT_DIR: '{{.RESULTS_DIR}}/coverage'
   COVERAGE_THRESHOLD: '{{.COVERAGE_THRESHOLD | default "100"}}'
   ARTIFACTS_DIR: artifacts
+  INSPECT_REPORT: '{{.RESULTS_DIR}}/inspectcode.txt'
   # Pinned so every machine and CI lint with the same rule set. Keep in sync with .github/workflows/ci.yml.
   MARKDOWNLINT: markdownlint-cli2@0.23.2
 
@@ -33,7 +34,7 @@ tasks:
       - task --list
 
   tools:
-    desc: Restore local dotnet tools (reportgenerator, dotnet-counters)
+    desc: Restore local dotnet tools (reportgenerator, dotnet-counters, ReSharper inspectcode)
     cmds:
       - dotnet tool restore
     sources:
@@ -172,6 +173,24 @@ tasks:
     cmds:
       - dotnet format {{.SOLUTION}} --verify-no-changes
 
+  lint:inspect:
+    desc: >-
+      Run the ReSharper inspections Rider shows in the editor over the whole solution and fail on any
+      finding (same check CI runs; severities are tuned in .editorconfig)
+    deps: [ tools ]
+    cmds:
+      - mkdir -p {{.RESULTS_DIR}}
+      - >-
+        dotnet jb inspectcode {{.SOLUTION}} --severity=WARNING --format=Text
+        --output={{.INSPECT_REPORT}} --verbosity=WARN
+      # inspectcode exits 0 whether or not it found anything, so the gate is the report: a finding is a
+      # line ending in "<file>:<line> <message>", and one is enough to fail.
+      - |
+        cat {{.INSPECT_REPORT}}; echo
+        if grep -qE '\.cs:[0-9]+ ' {{.INSPECT_REPORT}}; then
+          echo "ReSharper inspections found issues"; exit 1
+        fi
+
   lint:md:
     desc: Lint the Markdown docs against .markdownlint-cli2.jsonc (needs Node; npx fetches the pinned linter)
     cmds:
@@ -195,10 +214,13 @@ tasks:
       - find . -type d \( -name bin -o -name obj \) -not -path "./.git/*" -prune -exec rm -rf {} +
 
   ci:
-    desc: Run everything CI runs, locally (format check, Markdown lint, Release build, tests, coverage gate, pack)
+    desc: >-
+      Run everything CI runs, locally (format check, Markdown lint, ReSharper inspections, Release build,
+      tests, coverage gate, pack)
     cmds:
       - task: format:check
       - task: lint:md
+      - task: lint:inspect
       - task: build
         vars: { CONFIGURATION: Release }
       - task: test

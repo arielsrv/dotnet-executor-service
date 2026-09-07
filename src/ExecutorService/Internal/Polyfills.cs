@@ -39,7 +39,7 @@ namespace System.Threading.Tasks
             return _source.TrySetCanceled();
         }
 
-        public bool TrySetCanceled(Threading.CancellationToken cancellationToken)
+        public bool TrySetCanceled(CancellationToken cancellationToken)
         {
             return _source.TrySetCanceled(cancellationToken);
         }

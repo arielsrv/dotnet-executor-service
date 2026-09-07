@@ -50,6 +50,27 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
 
+      # The inspections Rider shows in the editor, over the whole solution; severities are tuned in
+      # .editorconfig. inspectcode exits 0 whether or not it found anything, so the gate is the report.
+      - name: ReSharper inspections
+        if: runner.os == 'Linux'
+        run: |
+          dotnet tool restore
+          mkdir -p TestResults
+          dotnet jb inspectcode ExecutorService.slnx --severity=WARNING --format=Sarif \
+            --output=TestResults/inspectcode.sarif --verbosity=WARN
+          jq -r '.runs[].results[] | "\(.locations[0].physicalLocation.artifactLocation.uri):\(.locations[0].physicalLocation.region.startLine) \(.ruleId): \(.message.text)"' \
+            TestResults/inspectcode.sarif
+          test "$(jq '[.runs[].results[]] | length' TestResults/inspectcode.sarif)" = "0"
+
+      - name: Upload inspection report
+        if: '!cancelled() && runner.os == ''Linux'''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: inspectcode
+          path: TestResults/inspectcode.sarif
+          if-no-files-found: ignore
+
       - name: Test
         run: dotnet test --solution ExecutorService.slnx --configuration Release --no-build
 
