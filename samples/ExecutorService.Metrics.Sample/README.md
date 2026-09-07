@@ -1,11 +1,11 @@
 # Metrics sample
 
-A console app that drives a `ThreadPoolExecutor` under synthetic load so every instrument the library
-publishes has something to show — without waiting for a real workload.
+A console app that drives a `ThreadPoolExecutor` under synthetic load so every instrument the library publishes has
+something to show — without waiting for a real workload.
 
 The executor publishes through `System.Diagnostics.Metrics` under the meter named
-`ThreadPoolExecutor.MeterName`, so both ways of watching below observe the *same* instruments. Nothing
-in the library is OpenTelemetry-specific; the SDK reference lives in this sample, not in the package.
+`ThreadPoolExecutor.MeterName`, so both ways of watching below observe the *same* instruments. Nothing in the library is
+OpenTelemetry-specific; the SDK reference lives in this sample, not in the package.
 
 ## Run it
 
@@ -24,8 +24,8 @@ dotnet run --project samples/ExecutorService.Metrics.Sample -- --duration 15
 
 ## What the workload does
 
-1. **Steady load** — submits a mix of fast (20 ms), slow (250 ms) and faulting tasks, throttled to hold the
-   backlog near `--queue-depth`. Four workers cannot keep up with the peak rate, so `executor.tasks.queued`
+1. **Steady load** — submits a mix of fast (20 ms), slow (250 ms) and faulting tasks, throttled to hold the backlog near
+   `--queue-depth`. Four workers cannot keep up with the peak rate, so `executor.tasks.queued`
    and `executor.task.queue.duration` stay meaningfully above zero instead of flatlining.
 2. **`Shutdown()`** — closes the queue, then submits once more. The refusal is the only thing that moves
    `executor.tasks.rejected`.
@@ -46,10 +46,9 @@ By the end all five instruments have moved and `executor.tasks.completed` carrie
 
 ## Reading the output
 
-The exporter is configured with explicit histogram buckets. OpenTelemetry's defaults span 0 to 10000, which
-suits milliseconds — both duration instruments here are in **seconds**, so with the defaults every
-measurement falls into the first bucket and the histogram tells you nothing. Any real pipeline needs the
-same view:
+The exporter is configured with explicit histogram buckets. OpenTelemetry's defaults span 0 to 10000, which suits
+milliseconds — both duration instruments here are in **seconds**, so with the defaults every measurement falls into the
+first bucket and the histogram tells you nothing. Any real pipeline needs the same view:
 
 ```csharp
 .AddView("executor.task.queue.duration", new ExplicitBucketHistogramConfiguration

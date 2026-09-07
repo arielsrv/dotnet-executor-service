@@ -9,7 +9,7 @@ public sealed class AsyncSubmitTests
     [Fact]
     public async Task Submit_Async_CompletesOnlyWhenTheWorkFinishes()
     {
-        using ThreadPoolExecutor executor = new(1);
+        await using ThreadPoolExecutor executor = new(1);
         using ManualResetEventSlim started = new();
         using ManualResetEventSlim release = new();
         bool finished = false;
@@ -43,7 +43,7 @@ public sealed class AsyncSubmitTests
     [Fact]
     public async Task Submit_Async_Func_ReturnsTheAwaitedResult()
     {
-        using ThreadPoolExecutor executor = new(1);
+        await using ThreadPoolExecutor executor = new(1);
 
         Task<int> submitted = executor.Submit(async () =>
         {
@@ -57,13 +57,13 @@ public sealed class AsyncSubmitTests
     [Fact]
     public async Task Submit_Async_ThreadCountBoundsConcurrency()
     {
-        const int Threads = 2;
-        const int Submissions = 6;
-        using ThreadPoolExecutor executor = new(Threads);
+        const int threads = 2;
+        const int submissions = 6;
+        await using ThreadPoolExecutor executor = new(threads);
         int running = 0;
         int peak = 0;
 
-        Task[] all = Enumerable.Range(0, Submissions)
+        Task[] all = Enumerable.Range(0, submissions)
             .Select(_ => executor.Submit(async () =>
             {
                 int current = Interlocked.Increment(ref running);
@@ -76,13 +76,13 @@ public sealed class AsyncSubmitTests
         await Task.WhenAll(all).WaitAsync(Timeout, Ct);
 
         // Without blocking the worker, all six would overlap and the pool would bound nothing.
-        Assert.True(Volatile.Read(ref peak) <= Threads, $"peak concurrency was {Volatile.Read(ref peak)}");
+        Assert.True(Volatile.Read(ref peak) <= threads, $"peak concurrency was {Volatile.Read(ref peak)}");
     }
 
     [Fact]
     public async Task Submit_Async_SurfacesExceptionsUnwrapped()
     {
-        using ThreadPoolExecutor executor = new(1);
+        await using ThreadPoolExecutor executor = new(1);
 
         Task submitted = executor.Submit(async () =>
         {
@@ -98,7 +98,7 @@ public sealed class AsyncSubmitTests
     [Fact]
     public async Task Submit_Async_CancellationCancelsTheTask()
     {
-        using ThreadPoolExecutor executor = new(1);
+        await using ThreadPoolExecutor executor = new(1);
 
         Task submitted = executor.Submit(async () =>
         {
@@ -113,7 +113,7 @@ public sealed class AsyncSubmitTests
     [Fact]
     public async Task Submit_Async_Func_SurfacesExceptionsUnwrapped()
     {
-        using ThreadPoolExecutor executor = new(1);
+        await using ThreadPoolExecutor executor = new(1);
 
         Task<int> submitted = executor.Submit(async () =>
         {
@@ -132,7 +132,7 @@ public sealed class AsyncSubmitTests
     {
         using ThreadPoolExecutor executor = new(1);
 
-        Assert.Throws<ArgumentNullException>(() => { _ = executor.Submit((Func<Task>)null!); });
+        Assert.Throws<ArgumentNullException>(() => { _ = executor.Submit(null!); });
         Assert.Throws<ArgumentNullException>(() => { _ = executor.Submit((Func<Task<int>>)null!); });
     }
 

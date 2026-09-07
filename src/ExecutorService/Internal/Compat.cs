@@ -24,7 +24,8 @@ internal static class Throw
     public static void IfLessThan(
         int value,
         int minimum,
-        [CallerArgumentExpression(nameof(value))] string? paramName = null)
+        [CallerArgumentExpression(nameof(value))]
+        string? paramName = null)
     {
 #if NET8_0_OR_GREATER
         ArgumentOutOfRangeException.ThrowIfLessThan(value, minimum, paramName);

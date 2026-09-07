@@ -49,7 +49,8 @@ Console.CancelKeyPress += stopOnCancelKey;
 Report($"pid {Environment.ProcessId} — meter '{ThreadPoolExecutor.MeterName}'");
 if (!options.UseConsoleExporter)
 {
-    Report($"attach with: dotnet counters monitor --counters {ThreadPoolExecutor.MeterName} --process-id {Environment.ProcessId}");
+    Report(
+        $"attach with: dotnet counters monitor --counters {ThreadPoolExecutor.MeterName} --process-id {Environment.ProcessId}");
 }
 
 Report(options.Duration == Timeout.InfiniteTimeSpan
@@ -72,10 +73,8 @@ return 0;
 
 static async Task RunAsync(SampleOptions options, CancellationToken stopping)
 {
-    ThreadPoolExecutor executor = new(options.ThreadCount, new ThreadPoolExecutorOptions
-    {
-        ThreadNamePrefix = "sample-worker"
-    });
+    ThreadPoolExecutor executor = new(options.ThreadCount,
+        new ThreadPoolExecutorOptions { ThreadNamePrefix = "sample-worker" });
 
     long submitted = 0;
 

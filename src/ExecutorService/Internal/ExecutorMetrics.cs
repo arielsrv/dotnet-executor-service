@@ -96,6 +96,6 @@ internal sealed class ExecutorMetrics : IDisposable
 
     private Measurement<int> Observe(int value)
     {
-        return new Measurement<int>(value, [_name]);
+        return new Measurement<int>(value, _name);
     }
 }

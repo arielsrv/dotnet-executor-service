@@ -17,7 +17,7 @@ public sealed class ThreadPoolExecutorTests
     [Fact]
     public async Task Submit_Func_ReturnsResult()
     {
-        using ThreadPoolExecutor executor = new(2);
+        await using ThreadPoolExecutor executor = new(2);
 
         int result = await executor.Submit(() => 21 * 2).WaitAsync(Timeout, Ct);
 
@@ -27,7 +27,7 @@ public sealed class ThreadPoolExecutorTests
     [Fact]
     public async Task Submit_Action_RunsOnNamedWorkerThread()
     {
-        using ThreadPoolExecutor executor = new(1, new ThreadPoolExecutorOptions { ThreadNamePrefix = "unit" });
+        await using ThreadPoolExecutor executor = new(1, new ThreadPoolExecutorOptions { ThreadNamePrefix = "unit" });
         string? threadName = null;
 
         await executor.Submit(() => threadName = Thread.CurrentThread.Name).WaitAsync(Timeout, Ct);
@@ -38,21 +38,25 @@ public sealed class ThreadPoolExecutorTests
     [Fact]
     public async Task Submit_ExceptionIsSurfacedThroughTask()
     {
-        using ThreadPoolExecutor executor = new(1);
-
-        static int Boom() => throw new InvalidOperationException("boom");
+        await using ThreadPoolExecutor executor = new(1);
 
         Task<int> task = executor.Submit(Boom);
 
         InvalidOperationException ex =
             await Assert.ThrowsAsync<InvalidOperationException>(() => task.WaitAsync(Timeout, Ct));
         Assert.Equal("boom", ex.Message);
+        return;
+
+        static int Boom()
+        {
+            throw new InvalidOperationException("boom");
+        }
     }
 
     [Fact]
     public async Task Submit_OperationCanceledExceptionCancelsTask()
     {
-        using ThreadPoolExecutor executor = new(1);
+        await using ThreadPoolExecutor executor = new(1);
 
         Task task = executor.Submit(() => throw new OperationCanceledException());
 
@@ -63,14 +67,18 @@ public sealed class ThreadPoolExecutorTests
     [Fact]
     public async Task Submit_Func_OperationCanceledExceptionCancelsTask()
     {
-        using ThreadPoolExecutor executor = new(1);
-
-        static int Cancel() => throw new OperationCanceledException();
+        await using ThreadPoolExecutor executor = new(1);
 
         Task<int> task = executor.Submit(Cancel);
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task.WaitAsync(Timeout, Ct));
         Assert.True(task.IsCanceled);
+        return;
+
+        static int Cancel()
+        {
+            throw new OperationCanceledException();
+        }
     }
 
     [Fact]
@@ -99,7 +107,7 @@ public sealed class ThreadPoolExecutorTests
     [Fact]
     public async Task Execute_ExceptionDoesNotKillWorker()
     {
-        using ThreadPoolExecutor executor = new(1);
+        await using ThreadPoolExecutor executor = new(1);
 
         executor.Execute(() => throw new InvalidOperationException());
         string result = await executor.Submit(() => "alive").WaitAsync(Timeout, Ct);
@@ -112,7 +120,7 @@ public sealed class ThreadPoolExecutorTests
     {
         const int threads = 2;
         const int tasks = 20;
-        using ThreadPoolExecutor executor = new(threads);
+        await using ThreadPoolExecutor executor = new(threads);
         int concurrent = 0;
         int maxConcurrent = 0;
 
@@ -264,7 +272,7 @@ public sealed class ThreadPoolExecutorTests
     [Fact]
     public async Task Dispatch_WhileRunning_RunsItem()
     {
-        using ThreadPoolExecutor executor = new(1);
+        await using ThreadPoolExecutor executor = new(1);
         FuncWorkItem<int> item = new(() => 42);
 
         executor.Dispatch(item);

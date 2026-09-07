@@ -105,7 +105,7 @@ tasks:
 
   metrics:counters:
     desc: Run the metrics sample and watch it live with dotnet-counters (no exporter output)
-    deps: [tools]
+    deps: [ tools ]
     vars:
       SAMPLE_BIN: samples/ExecutorService.Metrics.Sample/bin/{{.CONFIGURATION}}/{{.SAMPLE_FRAMEWORK}}/ExecutorService.Metrics.Sample
     cmds:
@@ -121,7 +121,7 @@ tasks:
 
   coverage:
     desc: Run tests with code coverage and build an HTML report in {{.COVERAGE_REPORT_DIR}}
-    deps: [tools]
+    deps: [ tools ]
     cmds:
       - rm -rf {{.RESULTS_DIR}}
       - >-

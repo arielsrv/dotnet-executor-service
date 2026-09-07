@@ -1,21 +1,21 @@
 # Quick start sample
 
-A console app that exercises the library **as published on nuget.org**, prints what it observed and exits
-non-zero if anything is off. It runs in about a second.
+A console app that exercises the library **as published on nuget.org**, prints what it observed and exits non-zero if
+anything is off. It runs in about a second.
 
 ## Why this one is different
 
-Every other project in this repository builds the library from source, so none of them would notice a package
-that restores but does not work — a target framework missing from the nupkg, a type left behind by packing, a
-dependency that resolves only locally. This sample references it the way a stranger does:
+Every other project in this repository builds the library from source, so none of them would notice a package that
+restores but does not work — a target framework missing from the nupkg, a type left behind by packing, a dependency that
+resolves only locally. This sample references it the way a stranger does:
 
 ```xml
 <PackageReference Include="ExecutorService"/>   <!-- version in Directory.Packages.props -->
 ```
 
 That makes it a post-release check as much as a sample: bump the pinned version in
-[`Directory.Packages.props`](../../Directory.Packages.props) to whatever was just released, run it, and the
-exit code tells you whether that release is usable.
+[`Directory.Packages.props`](../../Directory.Packages.props) to whatever was just released, run it, and the exit code
+tells you whether that release is usable.
 
 ## Run it
 
@@ -45,8 +45,8 @@ ExecutorService quick start
 5/5 checks passed
 ```
 
-The `+` suffix on the version is the commit the package was built from, so the line also says exactly which
-source produced the assembly being tested.
+The `+` suffix on the version is the commit the package was built from, so the line also says exactly which source
+produced the assembly being tested.
 
 The same program is what CI publishes as a **native AOT** binary and runs, which is what turns the library's
 `IsAotCompatible` declaration into something proven rather than promised (`task aot` does it locally).
@@ -55,12 +55,12 @@ The same program is what CI publishes as a **native AOT** binary and runs, which
 
 1. **`Submit` returns a value** — the future resolves to what the delegate computed.
 2. **`Submit` follows async work** — an `async` delegate's task completes after its awaits, not at the first one.
-3. **Fixed, dedicated threads** — eight tasks on a four-thread pool. Four of them park until all four are
-   running, which a narrower pool could not satisfy; the peak never passes four, which an elastic one would.
-   None of the work lands on a `ThreadPool` thread.
+3. **Fixed, dedicated threads** — eight tasks on a four-thread pool. Four of them park until all four are running, which
+   a narrower pool could not satisfy; the peak never passes four, which an elastic one would. None of the work lands on
+   a `ThreadPool` thread.
 4. **Strict FIFO** — twenty tasks on a single-thread executor come out in submission order.
-5. **Shutdown semantics** — queued work still finishes, new submissions raise `RejectedExecutionException`,
-   and the executor reaches `IsTerminated`.
+5. **Shutdown semantics** — queued work still finishes, new submissions raise `RejectedExecutionException`, and the
+   executor reaches `IsTerminated`.
 
-Each check has its own timeout, so a pool that never reaches the expected concurrency fails the run instead of
-hanging it.
+Each check has its own timeout, so a pool that never reaches the expected concurrency fails the run instead of hanging
+it.

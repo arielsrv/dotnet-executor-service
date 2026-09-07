@@ -51,10 +51,15 @@ Console.WriteLine();
 Console.WriteLine($"{passed}/{total} checks passed");
 return passed == total ? 0 : 1;
 
-void Run(string name, Func<(bool Ok, string Detail)> check) => Report(name, check());
+void Run(string name, Func<(bool Ok, string Detail)> check)
+{
+    Report(name, check());
+}
 
-void RunOn(string name, IExecutorService executor, Func<IExecutorService, (bool Ok, string Detail)> check) =>
+void RunOn(string name, IExecutorService executor, Func<IExecutorService, (bool Ok, string Detail)> check)
+{
     Report(name, check(executor));
+}
 
 void Report(string name, (bool Ok, string Detail) result)
 {

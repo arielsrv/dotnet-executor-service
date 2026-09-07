@@ -25,8 +25,8 @@ Formatting is enforced by `.editorconfig` and analyzers run with warnings as err
 dotnet format --verify-no-changes
 ```
 
-If you have [Task](https://taskfile.dev) installed, `Taskfile.yml` wraps the common commands.
-Run `task` to list them; the most useful are:
+If you have [Task](https://taskfile.dev) installed, `Taskfile.yml` wraps the common commands. Run `task` to list them;
+the most useful are:
 
 ```shell
 task test                 # run the suite (extra args after --, e.g. task test -- --filter-method "*Shutdown*")
@@ -46,24 +46,24 @@ The project keeps 100% line and branch coverage. New code needs tests that keep 
 2. Keep changes focused. One logical change per PR.
 3. Add or update tests. Concurrency code without tests will not be merged.
 4. Public API changes need XML documentation and an entry under `[Unreleased]` in `CHANGELOG.md`.
-5. Use [Conventional Commits](https://www.conventionalcommits.org/) for commit messages
-   (`feat:`, `fix:`, `docs:`, `test:`, `chore:`).
+5. Use [Conventional Commits](https://www.conventionalcommits.org/) for commit messages (`feat:`, `fix:`, `docs:`,
+   `test:`, `chore:`).
 6. Make sure `task ci` (or `dotnet build`, `dotnet test` and the coverage gate) passes locally before opening the PR.
 
 ## Releasing
 
-1. Move the `[Unreleased]` entries in `CHANGELOG.md` under a `## [x.y.z] - yyyy-mm-dd` heading and update the
-   link definitions at the bottom. `dotnet pack` lifts that section into the package's release notes, so it is
-   what nuget.org will show.
+1. Move the `[Unreleased]` entries in `CHANGELOG.md` under a `## [x.y.z] - yyyy-mm-dd` heading and update the link
+   definitions at the bottom. `dotnet pack` lifts that section into the package's release notes, so it is what nuget.org
+   will show.
 2. Tag `vx.y.z` and push the tag. The release workflow builds, tests, attests provenance and publishes.
 3. Once the version is live on nuget.org, bump `PackageValidationBaselineVersion` in
-   `src/ExecutorService/ExecutorService.csproj` to it, so the next pack is compared against the newest
-   release. Bumping it before the package is indexed breaks the build: the baseline has to be restorable.
+   `src/ExecutorService/ExecutorService.csproj` to it, so the next pack is compared against the newest release. Bumping
+   it before the package is indexed breaks the build: the baseline has to be restorable.
 
 ## Design guidelines
 
-- Mirror Java's `java.util.concurrent` semantics unless .NET idioms clearly call for something else.
-  Document every deviation in XML docs.
+- Mirror Java's `java.util.concurrent` semantics unless .NET idioms clearly call for something else. Document every
+  deviation in XML docs.
 - Prefer `Task` / `Task<T>` over custom future types.
 - Never let a task exception escape onto a worker thread; it must surface through the returned `Task`.
 - No allocations on the hot path that Java's implementation would not also incur.
