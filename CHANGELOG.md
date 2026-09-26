@@ -11,6 +11,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - The quick start sample smoke-tests 0.7.2 from nuget.org and the package validation baseline is 0.7.2, so the next
   pack is compared against the newest release.
+- The .NET SDK pinned in `global.json` is 10.0.401. The dev tools and the packages the tests, samples and benchmarks
+  use moved to their latest patch or minor versions (OpenTelemetry 1.19.1, xunit.v3 4.0.1, code coverage 18.11.2,
+  ReSharper tools 2026.2.2). The two dependencies the netstandard2.0 build ships are unchanged.
 
 ## [0.7.2] - 2026-09-07
 
