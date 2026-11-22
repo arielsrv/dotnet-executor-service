@@ -7,6 +7,14 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-11-22
+
+### Removed
+
+- Support for .NET 8, as it has reached end-of-support.
+- Support for `netstandard2.0`, enabling a completely dependency-free package.
+- Dependency floor enforcement (`VerifyShippedDependencyFloor`).
+
 ### Changed
 
 - The quick start sample smoke-tests 0.7.3 from nuget.org and the package validation baseline is 0.7.3, so the next
@@ -206,7 +214,8 @@ Released out of order: this version is numbered below 0.2.0 but contains later c
 
 - `ThreadPoolExecutor.IsWorkerThread` no longer allocates while checking the current thread.
 
-[Unreleased]: https://github.com/arielsrv/dotnet-executor-service/compare/v0.7.3...HEAD
+[Unreleased]: https://github.com/arielsrv/dotnet-executor-service/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.8.0
 [0.7.3]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.7.3
 [0.7.2]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.7.2
 [0.7.1]: https://github.com/arielsrv/dotnet-executor-service/releases/tag/v0.7.1

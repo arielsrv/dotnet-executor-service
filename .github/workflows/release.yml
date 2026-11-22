@@ -44,8 +44,10 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6
         with:
-          # 8.0.x supplies the runtime the net8.0 test run needs; global.json still pins the SDK.
-          dotnet-version: 8.0.x
+          # 10.0.x and 11.0.x supply the runtimes the test runs need; global.json still pins the SDK.
+          dotnet-version: |
+            10.0.x
+            11.0.x
           global-json-file: global.json
 
       - name: Build
