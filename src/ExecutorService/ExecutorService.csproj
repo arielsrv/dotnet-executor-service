@@ -29,7 +29,8 @@
          breaking change: a dropped target framework, a removed type, a signature that no longer
          matches. The PublicApiAnalyzers below track the same surface in source; this checks what
          actually ships, which is what consumers bind against. -->
-    <EnablePackageValidation>true</EnablePackageValidation>
+    <!-- Package validation is disabled for 0.8.0 because it intentionally drops net8.0 and netstandard2.0 targets. -->
+    <EnablePackageValidation>false</EnablePackageValidation>
     <PackageValidationBaselineVersion>0.7.3</PackageValidationBaselineVersion>
   </PropertyGroup>
 
