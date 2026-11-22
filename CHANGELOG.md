@@ -10,7 +10,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Removed
 
 - Support for .NET 8, as it has reached end-of-support.
-- Dependency floor enforcement (`VerifyShippedDependencyFloor`) for the `netstandard2.0` target.
+- Support for `netstandard2.0`, enabling a completely dependency-free package.
+- Dependency floor enforcement (`VerifyShippedDependencyFloor`).
 
 ### Changed
 

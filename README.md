@@ -26,10 +26,7 @@ you want what Java developers reach for with `Executors.newFixedThreadPool(n)`:
 dotnet add package ExecutorService
 ```
 
-Targets **.NET 8** and **.NET 10** with no dependencies at all, and **netstandard2.0** for .NET Framework 4.6.2+, Mono
-and Unity. Only that last one carries dependencies — `System.Diagnostics.DiagnosticSource` and
-`Microsoft.Bcl.AsyncInterfaces` — because .NET Framework ships with neither the metrics API nor
-`IAsyncDisposable`. On the modern targets both are in the box, so the package stays dependency-free there.
+Targets **.NET 10** and **.NET 11** with no dependencies at all. Both metrics API and `IAsyncDisposable` are in the box, so the package stays dependency-free.
 
 ## Quick start
 
