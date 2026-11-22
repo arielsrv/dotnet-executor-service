@@ -25,8 +25,8 @@ internal static class Throw
 }
 
 /// <summary>
-///     Elapsed time from a <see cref="Stopwatch" /> timestamp. netstandard2.0 has
-///     <see cref="Stopwatch.GetTimestamp" /> but not <c>Stopwatch.GetElapsedTime</c>, which arrived in .NET 7.
+///     Elapsed time from a <see cref="Stopwatch" /> timestamp. Uses the modern
+///     <see cref="Stopwatch.GetElapsedTime" /> API available in .NET 7+.
 /// </summary>
 internal static class Clock
 {
