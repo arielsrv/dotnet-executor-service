@@ -31,8 +31,11 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6
         with:
-          # 8.0.x supplies the runtime the net8.0 test run needs; global.json still pins the SDK.
-          dotnet-version: 8.0.x
+          # 8.0.x and 10.0.x supply the runtimes the test runs need; global.json still pins the SDK.
+          dotnet-version: |
+            8.0.x
+            10.0.x
+            11.0.x
           global-json-file: global.json
 
       - name: Restore
@@ -87,7 +90,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           dotnet test --solution ExecutorService.slnx --configuration Release --no-build \
-            --framework net10.0 --results-directory TestResults -- \
+            --framework net11.0 --results-directory TestResults -- \
             --coverage --coverage-output-format cobertura --coverage-output coverage.cobertura.xml
           line=$(sed -n 's/.*<coverage [^>]*line-rate="\([0-9.]*\)".*/\1/p' TestResults/coverage.cobertura.xml | head -1)
           branch=$(sed -n 's/.*<coverage [^>]*branch-rate="\([0-9.]*\)".*/\1/p' TestResults/coverage.cobertura.xml | head -1)
