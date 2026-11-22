@@ -29,7 +29,7 @@ jobs:
           fetch-depth: 0 # MinVer needs tags
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6
         with:
           # 8.0.x supplies the runtime the net8.0 test run needs; global.json still pins the SDK.
           dotnet-version: 8.0.x
