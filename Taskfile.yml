@@ -54,24 +54,29 @@ tasks:
 
   test:
     desc: Run the test suite (pass extra args after `--`, e.g. `task test -- --filter-method "*Shutdown*"`)
+    vars:
+      FRAMEWORK_ARG: '{{if .FRAMEWORK}}--framework {{.FRAMEWORK}}{{end}}'
     cmds:
-      - dotnet test --solution {{.SOLUTION}} --configuration {{.CONFIGURATION}} -- {{.CLI_ARGS}}
+      - dotnet test --solution {{.SOLUTION}} --configuration {{.CONFIGURATION}} {{.FRAMEWORK_ARG}} -- {{.CLI_ARGS}}
 
   test:watch:
     desc: Re-run tests on every file change
+    vars:
+      FRAMEWORK_ARG: '{{if .FRAMEWORK}}--framework {{.FRAMEWORK}}{{end}}'
     cmds:
-      - dotnet watch --project {{.TEST_PROJECT}} test
+      - dotnet watch --project {{.TEST_PROJECT}} test {{.FRAMEWORK_ARG}}
 
   test:stress:
     desc: Run the suite N times to shake out flaky concurrency tests (N=10 by default)
     vars:
       N: '{{.N | default "10"}}'
+      FRAMEWORK_ARG: '{{if .FRAMEWORK}}--framework {{.FRAMEWORK}}{{end}}'
     cmds:
       - dotnet build {{.SOLUTION}} --configuration {{.CONFIGURATION}}
       - |
         for i in $(seq 1 {{.N}}); do
           echo "== run $i/{{.N}}"
-          dotnet test --solution {{.SOLUTION}} --configuration {{.CONFIGURATION}} --no-build || exit 1
+          dotnet test --solution {{.SOLUTION}} --configuration {{.CONFIGURATION}} --no-build {{.FRAMEWORK_ARG}} || exit 1
         done
 
   quickstart:
@@ -224,7 +229,7 @@ tasks:
       - task: build
         vars: { CONFIGURATION: Release }
       - task: test
-        vars: { CONFIGURATION: Release }
+        vars: { CONFIGURATION: Release, FRAMEWORK: '{{.COVERAGE_FRAMEWORK}}' }
       - task: coverage:check
         vars: { CONFIGURATION: Release }
       - task: pack
