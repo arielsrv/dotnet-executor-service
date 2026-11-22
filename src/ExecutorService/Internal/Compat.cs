@@ -26,7 +26,7 @@ internal static class Throw
 
 /// <summary>
 ///     Elapsed time from a <see cref="Stopwatch" /> timestamp. Uses the modern
-///     <see cref="Stopwatch.GetElapsedTime" /> API available in .NET 7+.
+///     <see cref="Stopwatch.GetElapsedTime(long)" /> API available in .NET 7+.
 /// </summary>
 internal static class Clock
 {
