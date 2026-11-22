@@ -26,7 +26,8 @@ you want what Java developers reach for with `Executors.newFixedThreadPool(n)`:
 dotnet add package ExecutorService
 ```
 
-Targets **.NET 10** and **.NET 11** with no dependencies at all. Both metrics API and `IAsyncDisposable` are in the box, so the package stays dependency-free.
+Targets **.NET 10** and **.NET 11** with no dependencies at all. Both metrics API and `IAsyncDisposable`
+are in the box, so the package stays dependency-free.
 
 ## Quick start
 
