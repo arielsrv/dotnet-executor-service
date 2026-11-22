@@ -7,6 +7,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Removed
+
+- Support for .NET 8, as it has reached end-of-support.
+- Dependency floor enforcement (`VerifyShippedDependencyFloor`) for the `netstandard2.0` target.
+
 ### Changed
 
 - The quick start sample smoke-tests 0.7.3 from nuget.org and the package validation baseline is 0.7.3, so the next
